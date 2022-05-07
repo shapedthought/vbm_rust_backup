@@ -1,9 +1,11 @@
 use jobs::{BackupJobs, BackupJobSave};
 use reqwest::header::{HeaderMap, ACCEPT, CONTENT_TYPE};
+use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::fs::{self, File};
 use std::io::Write;
+use anyhow::Result;
 // use spinners::{Spinner, Spinners};
 
 #[allow(dead_code)]
@@ -30,7 +32,7 @@ struct OrgData {
 }
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> Result<()> {
     let file = fs::read_to_string("creds.json").unwrap();
     let mut creds: Creds = serde_json::from_str(&file).unwrap();
     let pass_bytes = base64::decode(creds.password.as_bytes()).unwrap();
@@ -51,19 +53,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .danger_accept_invalid_certs(true)
         .build()?;
 
-    // let sp = Spinner::new(Spinners::Dots9, "Getting data".into());
-    let resp = client
-        .post(url)
-        .body(creds_urlenc)
-        .headers(headers)
-        .send()
-        .await?;
-
-    println!("Status code: {:?}", resp.status());
-
-    // sp.stop();
-
-    let res_json = resp.json::<Response>().await?;
+    let res_json: Response = post_data(&client, &headers, &url, creds_urlenc).await?;
 
     let bearer = format!("Bearer {}", res_json.access_token);
     let mut req_header = HeaderMap::new();
@@ -73,13 +63,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     req_header.insert("Authorization", bearer.parse()?);
 
     let org_url = format!("https://{}:4443/v6/Organizations/", creds.url);
-    let org_data: Vec<OrgData> = client
-        .get(org_url)
-        .headers(req_header.clone())
-        .send()
-        .await?
-        .json()
-        .await?;
+    let org_data: Vec<OrgData> = get_data(&client, &req_header, &org_url).await?;
 
     println!("Name: {:?}: id: {:?}", org_data[0].name, org_data[0].id);
     // write_file("token.json", res_json).expect("Someting went wrong");
@@ -90,13 +74,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             "https://{}:4443/v5/organizations/{}/Jobs",
             creds.url, item.id
         );
-        let job: Vec<BackupJobs> = client
-            .get(url)
-            .headers(req_header.clone())
-            .send()
-            .await?
-            .json()
-            .await?;
+        let job: Vec<BackupJobs> = get_data(&client, &req_header, &url).await?;
 
         jobs.push(job)
     }
@@ -107,13 +85,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         for j in i.iter() {
             if j.backup_type == "SelectedItems" {
                 let select_url = &j.links.selected_items.href;
-                let select_items: Value = client
-                    .get(select_url)
-                    .headers(req_header.clone())
-                    .send()
-                    .await?
-                    .json()
-                    .await?;
+                let select_items: Value = get_data(&client, &req_header, &select_url).await.unwrap();
+
                 let new_job = BackupJobSave {
                     backup_type: select_items,
                     description: j.description.to_string(),
@@ -141,12 +114,36 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-// #[allow(dead_code)]
-// fn write_file<U, T>(name: U, data: T) -> std::io::Result<()> {
-//     let mut file = File::create(name)?;
-//     let strings = serde_json::to_string(&data)?;
-//     file.write_all(strings.as_bytes())?;
-//     Ok(())
-// }
+async fn get_data<T: DeserializeOwned>(
+    client: &reqwest::Client, 
+    headers: &HeaderMap, 
+    url: &str) -> Result<T>{
+    let data = client
+        .get(url)
+        .headers(headers.clone())
+        .send()
+        .await?
+        .json()
+        .await?;
 
-//echo -n | openssl s_client -showcerts -servername vi1.virtausyntheic.co.uk -connect vi1.virtausyntheic.co.uk:9419 | openssl x509 > api.cert
+    Ok(data)
+}
+
+async fn post_data<T: DeserializeOwned>(
+    client: &reqwest::Client,
+    headers: &HeaderMap,
+    url: &str,
+    data: String
+    )
+    -> Result<T> {
+    let res_data = client
+        .post(url)
+        .body(data)
+        .headers(headers.clone())
+        .send()
+        .await?
+        .json()
+        .await?;
+    
+    Ok(res_data)
+}
