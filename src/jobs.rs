@@ -25,7 +25,7 @@ pub struct BackupJobs2<T, U, V> {
     pub is_enabled: V,
     pub name: U,
     pub repository_id: U,
-    pub schedule_policy: SchedulePolicy
+    pub schedule_policy: SchedulePolicy,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -85,11 +85,10 @@ pub struct Links {
 pub struct OrgBackups {
     pub backup_org: String,
     pub backup_org_id: String,
-    pub backup_jobs: BackupJobSave
+    pub backup_jobs: BackupJobSave,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Href {
     pub href: String,
 }
-
