@@ -7,6 +7,8 @@ use dialoguer::console::Term;
 
 mod backup;
 use backup::get_backups;
+mod restore;
+use restore::do_restores;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -22,7 +24,7 @@ async fn main() -> Result<()> {
             if index == 0 {
                 get_backups().await?;
             } else {
-                println!("Not implemented yet!")
+                do_restores().await?;
             }
         },
         None => println!("User did not select anything")
