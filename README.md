@@ -1,10 +1,24 @@
 # VBM Backup 
 
-This tool backsup and restores Veeam Backup for M365 jobs. 
+This tool backs up and restores Veeam Backup for M365 jobs. 
 
-When you run the tool it will ask if you want to backup or restore. 
+Currently only restores individual jobs.
 
-Both options require a creds.json file in the same directory where you are running the tool:
+CLI commands:
+
+    Usage: vbm_rust_backup [OPTIONS]
+
+    Options:
+    -r, --restore  Runs the restore action
+    -c, --creds    Create creds.json file
+    -h, --help     Print help information
+    -V, --version  Print version information
+
+By default the tool will backup as long as the creds.json file is present. 
+
+If the tool will ask if you want to create the file and take you through a wizard.
+
+creds.json file: 
 
     {
     "grant_type": "password",
@@ -15,15 +29,14 @@ Both options require a creds.json file in the same directory where you are runni
 
 The password needs to be in base64 for a little bit of passive security. 
 
-Restores will ask a series of questions:
+Using the -r / --restore flag the tool will take you through a wizard:
 
 1. Select the file you want to restore from
 2. Select the job you want to restore
 3. Select the Org to restore to
 4. Select the Proxy you want to use
 5. Select the Repo you want to use
-
-After the last step it will create the job.
+6. Confirm the restore
 
 ## How to set up
 

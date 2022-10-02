@@ -1,13 +1,11 @@
 use anyhow::Result;
-use comfy_table::modifiers::UTF8_ROUND_CORNERS;
-use comfy_table::presets::UTF8_FULL;
-use comfy_table::{modifiers::UTF8_SOLID_INNER_BORDERS, Table};
 use dialoguer::console::Term;
 use dialoguer::{theme::ColorfulTheme, Confirm, Select};
 use reqwest::header::{HeaderMap, ACCEPT, CONTENT_TYPE};
 use serde::de::DeserializeOwned;
 use std::fs;
-use crate::getcreds::get_creds;
+use colored::*;
+use crate::getcreds::{get_creds, create_creds};
 use crate::models::credsmodel::CredsResponse;
 use crate::models::jobsmodel::BackupJobSave;
 use crate::models::othermodels::OrgData;
@@ -30,24 +28,6 @@ struct RepoDetails {
     repo_name: String,
     repo_id: String,
     is_long_term: Option<bool>
-}
-
-fn print_table(json_files: &Vec<String>) {
-    let mut table = Table::new();
-    table
-        .load_preset(UTF8_FULL)
-        .apply_modifier(UTF8_ROUND_CORNERS)
-        .apply_modifier(UTF8_SOLID_INNER_BORDERS)
-        .set_header(vec!["Index", "Name"]);
-
-    for (i, v) in json_files.iter().enumerate() {
-        let str = v.to_owned();
-
-        table.add_row(vec![i.to_string(), str]);
-    }
-
-    println!("\nSelect which file you want to Restore from");
-    println!("{table}");
 }
 
 pub async fn run_restores(file_name: &String) -> Result<()> {
@@ -107,60 +87,49 @@ pub async fn run_restores(file_name: &String) -> Result<()> {
     let file = fs::read_to_string(file_name)?;
     let mut backuped_jobs: Vec<BackupJobSave> = serde_json::from_str(&file)?;
 
-    let mut table = Table::new();
-    table
-        .load_preset(UTF8_FULL)
-        .apply_modifier(UTF8_ROUND_CORNERS)
-        .apply_modifier(UTF8_SOLID_INNER_BORDERS)
-        .set_header(vec!["Index", "Name", "Description"]);
+    let mut job_strings = Vec::new();
 
     for (i, v) in backuped_jobs.iter().enumerate() {
         let name = v.name.to_owned();
-        let description = v.description.to_owned();
 
-        table.add_row(vec![i.to_string(), name, description]);
+        let job_string = format!("{}. {}", i, name);
+        job_strings.push(job_string);
     }
 
-    println!("{table}");
-    let options = (0..backuped_jobs.len())
-        .map(|x| x.to_string())
-        .collect::<Vec<String>>();
-
     let selection = Select::with_theme(&ColorfulTheme::default())
-        .items(&options)
+        .with_prompt("Select the job to restore:")
+        .items(&job_strings)
         .default(0)
         .interact_on_opt(&Term::stderr())?;
 
     match selection {
         Some(index) => {
-            // println!("Selected item: {}", index);
             let mut job = &mut backuped_jobs[index];
-            println!("{:} {:}", job.name, job.backup_type);
 
             // select org
-            println!("Select Org to restore to:");
             let selection = Select::with_theme(&ColorfulTheme::default())
+                .with_prompt("Select Org to restore to")
                 .items(&org_names)
                 .default(0)
                 .interact_on_opt(&Term::stderr())?;
 
             let mut org_id: String = String::new();
             if let Some(i) = selection {
-                println!("ID: {:?}, Name: {:?}", org_data[i].id, org_data[i].name);
+                // println!("ID: {:?}, Name: {:?}", org_data[i].id, org_data[i].name);
                 org_id = org_data[i].id.clone();
             }
 
             // select proxy
-            println!("Select Proxy:");
             let proxy_select = Select::with_theme(&ColorfulTheme::default())
+                .with_prompt("Select Proxy")
                 .items(&proxy_names)
                 .default(0)
                 .interact_on_opt(&Term::stderr())?;
 
-            println!("Select Repository:");
             if let Some(i) = proxy_select {
                 let repo_names: Vec<String> = repos[i].repos.iter().map(|x| x.repo_name.clone()).collect();
                 let repo_select = Select::with_theme(&ColorfulTheme::default())
+                    .with_prompt("Select Repository")
                     .items(&repo_names)
                     .default(0)
                     .interact_on_opt(&Term::stderr())?;
@@ -168,16 +137,23 @@ pub async fn run_restores(file_name: &String) -> Result<()> {
                 if let Some(j) = repo_select {
                     job.repository_id = repos[i].repos[j].repo_id.clone();
 
-                    // https://{URL}:4443/v6/Organizations/{id}/Jobs
-                    let job_url = format!("https://{}:4443/v6/Organizations/{}/Jobs", creds.url, org_id);
-                    println!("{:}", job_url);
-                    let res = client.post(job_url)
-                        .headers(req_header)
-                        .json(&job)
-                        .send()
-                        .await?;
-
-                    println!("{:#?}", res);
+                    if Confirm::new().with_prompt("Restore?").interact()? {
+                        let job_url = format!("https://{}:4443/v6/Organizations/{}/Jobs", creds.url, org_id);
+                        // println!("{:}", job_url);
+                        let res = client.post(job_url)
+                            .headers(req_header)
+                            .json(&job)
+                            .send()
+                            .await?;
+    
+                        if res.status().is_success() {
+                            println!("{}", "success!".green())
+                        } else {
+                            println!("{}", "error!".red())
+                        }
+                    } else {
+                        println!("Cancelled..");
+                    }
 
                 }
             }
@@ -185,14 +161,18 @@ pub async fn run_restores(file_name: &String) -> Result<()> {
         None => println!("Nothing selected"),
     }
  
-
-    // confirm restore
-
-    // post backups to the API
     Ok(())
 }
 
 pub async fn do_restores() -> Result<()> {
+    if std::path::Path::new("creds.json").exists() == false {
+        if Confirm::new().with_prompt("No creds.json file, create?").interact()? {
+            create_creds();
+        } else {
+            println!("Exiting...");
+            std::process::exit(1);
+        }
+    }
     let paths = fs::read_dir(".")?;
 
     let mut json_files = Vec::new();
@@ -212,27 +192,29 @@ pub async fn do_restores() -> Result<()> {
                 .with_prompt("Do you want to continue?")
                 .interact()?
             {
-                println!("Looks like you want to continue");
-                run_restores(&json_files[1]).await?;
+                run_restores(&json_files[0]).await?;
             } else {
                 println!("nevermind then :(");
             }
         }
         2.. => {
-            print_table(&json_files);
-
-            let options = (0..json_files.len())
-                .map(|x| x.to_string())
-                .collect::<Vec<String>>();
-
+            // print_table(&json_files);
+            let mut file_strings = Vec::new();
+            for (i, v) in json_files.iter().enumerate() {
+                let str = v.to_owned();
+                let job_string = format!("{}. {}", i, str);
+        
+                file_strings.push(job_string);
+            }
+            
             let selection = Select::with_theme(&ColorfulTheme::default())
-                .items(&options)
+                .with_prompt("Select Job file to restore from")
+                .items(&file_strings)
                 .default(0)
                 .interact_on_opt(&Term::stderr())?;
 
             match selection {
                 Some(index) => {
-                    // println!("Selected item: {}", index);
                     let file = &json_files[index];
                     run_restores(file).await?;
                 }
