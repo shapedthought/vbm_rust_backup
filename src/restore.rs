@@ -1,15 +1,15 @@
+use crate::getcreds::{create_creds, get_creds};
+use crate::models::credsmodel::CredsResponse;
+use crate::models::jobsmodel::BackupJobSave;
+use crate::models::othermodels::OrgData;
+use crate::models::repomodel::RepoModel;
 use anyhow::Result;
+use colored::*;
 use dialoguer::console::Term;
 use dialoguer::{theme::ColorfulTheme, Confirm, Select};
 use reqwest::header::{HeaderMap, ACCEPT, CONTENT_TYPE};
 use serde::de::DeserializeOwned;
 use std::fs;
-use colored::*;
-use crate::getcreds::{get_creds, create_creds};
-use crate::models::credsmodel::CredsResponse;
-use crate::models::jobsmodel::BackupJobSave;
-use crate::models::othermodels::OrgData;
-use crate::models::repomodel::RepoModel;
 
 use crate::models::servermodels::ProxyModel;
 // use serde_json::Value;
@@ -19,7 +19,7 @@ use crate::models::servermodels::ProxyModel;
 struct ProxyRepo {
     proxy_id: String,
     proxy_name: String,
-    repos: Vec<RepoDetails>
+    repos: Vec<RepoDetails>,
 }
 
 #[derive(Debug)]
@@ -27,7 +27,7 @@ struct ProxyRepo {
 struct RepoDetails {
     repo_name: String,
     repo_id: String,
-    is_long_term: Option<bool>
+    is_long_term: Option<bool>,
 }
 
 pub async fn run_restores(file_name: &String) -> Result<()> {
@@ -68,16 +68,19 @@ pub async fn run_restores(file_name: &String) -> Result<()> {
         let repo_url = format!("https://{}:4443/{}", creds.url, i.links.repositories.href);
         let repo_data: Vec<RepoModel> = get_data(&client, &req_header, &repo_url).await?;
 
-        let repo_details: Vec<RepoDetails> = repo_data.iter().map(|x| RepoDetails {
-            repo_id: x.id.clone(),
-            repo_name: x.name.clone(),
-            is_long_term: x.is_long_term
-        }).collect();
+        let repo_details: Vec<RepoDetails> = repo_data
+            .iter()
+            .map(|x| RepoDetails {
+                repo_id: x.id.clone(),
+                repo_name: x.name.clone(),
+                is_long_term: x.is_long_term,
+            })
+            .collect();
 
         let proxy_repo = ProxyRepo {
             proxy_id: i.id,
             proxy_name: i.host_name,
-            repos: repo_details
+            repos: repo_details,
         };
         repos.push(proxy_repo);
     }
@@ -127,7 +130,8 @@ pub async fn run_restores(file_name: &String) -> Result<()> {
                 .interact_on_opt(&Term::stderr())?;
 
             if let Some(i) = proxy_select {
-                let repo_names: Vec<String> = repos[i].repos.iter().map(|x| x.repo_name.clone()).collect();
+                let repo_names: Vec<String> =
+                    repos[i].repos.iter().map(|x| x.repo_name.clone()).collect();
                 let repo_select = Select::with_theme(&ColorfulTheme::default())
                     .with_prompt("Select Repository")
                     .items(&repo_names)
@@ -138,14 +142,18 @@ pub async fn run_restores(file_name: &String) -> Result<()> {
                     job.repository_id = repos[i].repos[j].repo_id.clone();
 
                     if Confirm::new().with_prompt("Restore?").interact()? {
-                        let job_url = format!("https://{}:4443/v6/Organizations/{}/Jobs", creds.url, org_id);
+                        let job_url = format!(
+                            "https://{}:4443/v6/Organizations/{}/Jobs",
+                            creds.url, org_id
+                        );
                         // println!("{:}", job_url);
-                        let res = client.post(job_url)
+                        let res = client
+                            .post(job_url)
                             .headers(req_header)
                             .json(&job)
                             .send()
                             .await?;
-    
+
                         if res.status().is_success() {
                             println!("{}", "success!".green())
                         } else {
@@ -154,19 +162,21 @@ pub async fn run_restores(file_name: &String) -> Result<()> {
                     } else {
                         println!("Cancelled..");
                     }
-
                 }
             }
         }
         None => println!("Nothing selected"),
     }
- 
+
     Ok(())
 }
 
 pub async fn do_restores() -> Result<()> {
     if std::path::Path::new("creds.json").exists() == false {
-        if Confirm::new().with_prompt("No creds.json file, create?").interact()? {
+        if Confirm::new()
+            .with_prompt("No creds.json file, create?")
+            .interact()?
+        {
             create_creds();
         } else {
             println!("Exiting...");
@@ -203,10 +213,10 @@ pub async fn do_restores() -> Result<()> {
             for (i, v) in json_files.iter().enumerate() {
                 let str = v.to_owned();
                 let job_string = format!("{}. {}", i, str);
-        
+
                 file_strings.push(job_string);
             }
-            
+
             let selection = Select::with_theme(&ColorfulTheme::default())
                 .with_prompt("Select Job file to restore from")
                 .items(&file_strings)

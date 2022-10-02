@@ -13,7 +13,7 @@ pub struct BackupJobs {
     pub name: String,
     pub repository_id: String,
     pub schedule_policy: SchedulePolicy,
-    pub selected_items: Option<Vec<Value>>
+    pub selected_items: Option<Vec<Value>>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -41,30 +41,8 @@ pub struct BackupJobSave {
     pub name: String,
     pub repository_id: String,
     pub schedule_policy: SchedulePolicy,
-    pub run_now: bool
+    pub run_now: bool,
 }
-
-// impl BackupJobSave {
-//     pub fn new(
-//         backup_type: Value,
-//         description: String,
-//         is_enabled: bool,
-//         id: String,
-//         name: String,
-//         repository_id: String,
-//         schedule_policy: SchedulePolicy,
-//     ) -> BackupJobSave {
-//         BackupJobSave {
-//             backup_type,
-//             description,
-//             id,
-//             is_enabled,
-//             name,
-//             repository_id,
-//             schedule_policy,
-//         }
-//     }
-// }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 #[serde(rename_all = "camelCase")]

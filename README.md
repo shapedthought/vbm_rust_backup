@@ -9,10 +9,11 @@ CLI commands:
     Usage: vbm_rust_backup [OPTIONS]
 
     Options:
-    -r, --restore  Runs the restore action
-    -c, --creds    Create creds.json file
-    -h, --help     Print help information
-    -V, --version  Print version information
+        -r, --restore  Runs the restore action
+        -c, --creds    Create creds.json file
+        -t, --table    Print the info in a backup file in a table
+        -h, --help     Print help information
+        -V, --version  Print version information
 
 By default the tool will backup as long as the creds.json file is present. 
 

@@ -8,8 +8,10 @@ use backup::get_backups;
 mod restore;
 use getcreds::create_creds;
 use restore::do_restores;
-pub mod models;
+use showtable::print_table;
 pub mod getcreds;
+pub mod models;
+pub mod showtable;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -21,12 +23,21 @@ struct Cli {
     /// Create creds.json file
     #[arg(short, long)]
     creds: bool,
+
+    /// Print the info in a backup file in a table
+    #[arg(short, long)]
+    table: bool,
 }
 
 #[tokio::main]
 async fn main() -> Result<()> {
     // println!("Selection which option you require");
     let cli = Cli::parse();
+
+    if cli.table {
+        print_table();
+        std::process::exit(1);
+    }
 
     if cli.creds {
         create_creds();

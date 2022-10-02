@@ -1,6 +1,6 @@
-use crate::getcreds::{get_creds, create_creds};
+use crate::getcreds::{create_creds, get_creds};
 use crate::models::credsmodel::CredsResponse;
-use crate::models::jobsmodel::{BackupJobs, BackupJobSave};
+use crate::models::jobsmodel::{BackupJobSave, BackupJobs};
 use crate::models::othermodels::OrgData;
 use anyhow::Result;
 use chrono;
@@ -14,7 +14,10 @@ use std::io::Write;
 
 pub async fn get_backups() -> Result<()> {
     if std::path::Path::new("creds.json").exists() == false {
-        if Confirm::new().with_prompt("No creds.json file, create?").interact()? {
+        if Confirm::new()
+            .with_prompt("No creds.json file, create?")
+            .interact()?
+        {
             create_creds()
         } else {
             println!("Exiting...");
@@ -78,7 +81,7 @@ pub async fn get_backups() -> Result<()> {
                 name: j.name.to_string(),
                 repository_id: j.repository_id.to_string(),
                 schedule_policy: j.schedule_policy.clone(),
-                run_now: false
+                run_now: false,
             };
             select_jobs.push(new_job)
         }

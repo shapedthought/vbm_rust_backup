@@ -1,4 +1,7 @@
-use std::{fs::{self, File}, io::Write};
+use std::{
+    fs::{self, File},
+    io::Write,
+};
 
 use anyhow::Result;
 use dialoguer::{Input, Password};
@@ -14,30 +17,26 @@ pub fn get_creds() -> Result<Creds> {
 }
 
 pub fn create_creds() {
-
-    let username : String = Input::new()
+    let username: String = Input::new()
         .with_prompt("Username")
         .interact_text()
         .unwrap();
-    
-    let url : String = Input::new()
-        .with_prompt("Address")
-        .interact_text()
-        .unwrap();
+
+    let url: String = Input::new().with_prompt("Address").interact_text().unwrap();
 
     let password = Password::new()
         .with_prompt("Enter password")
         .with_confirmation("Confirm password", "Passwords mismatching")
         .interact()
         .unwrap();
-    
+
     let b64 = base64::encode(password.as_bytes());
 
     let creds = Creds {
         grant_type: "password".to_string(),
         username,
         password: b64,
-        url
+        url,
     };
 
     let mut file1 = File::create("creds.json").unwrap();
