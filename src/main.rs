@@ -1,14 +1,13 @@
 use anyhow::Result;
-use dialoguer::{
-    Select,
-    theme::ColorfulTheme
-};
 use dialoguer::console::Term;
+use dialoguer::{theme::ColorfulTheme, Select};
 
 mod backup;
 use backup::get_backups;
 mod restore;
 use restore::do_restores;
+pub mod models;
+pub mod getcreds;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -26,8 +25,8 @@ async fn main() -> Result<()> {
             } else {
                 do_restores().await?;
             }
-        },
-        None => println!("User did not select anything")
+        }
+        None => println!("User did not select anything"),
     }
 
     Ok(())

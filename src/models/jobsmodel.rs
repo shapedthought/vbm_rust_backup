@@ -13,6 +13,7 @@ pub struct BackupJobs {
     pub name: String,
     pub repository_id: String,
     pub schedule_policy: SchedulePolicy,
+    pub selected_items: Option<Vec<Value>>
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -29,37 +30,41 @@ pub struct BackupJobs2<T, U, V> {
 }
 
 #[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct BackupJobSave {
-    pub backup_type: Value,
+    pub backup_type: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub selected_items: Option<Value>,
     pub description: String,
     pub id: String,
     pub is_enabled: bool,
     pub name: String,
     pub repository_id: String,
     pub schedule_policy: SchedulePolicy,
+    pub run_now: bool
 }
 
-impl BackupJobSave {
-    pub fn new(
-        backup_type: Value,
-        description: String,
-        is_enabled: bool,
-        id: String,
-        name: String,
-        repository_id: String,
-        schedule_policy: SchedulePolicy,
-    ) -> BackupJobSave {
-        BackupJobSave {
-            backup_type,
-            description,
-            id,
-            is_enabled,
-            name,
-            repository_id,
-            schedule_policy,
-        }
-    }
-}
+// impl BackupJobSave {
+//     pub fn new(
+//         backup_type: Value,
+//         description: String,
+//         is_enabled: bool,
+//         id: String,
+//         name: String,
+//         repository_id: String,
+//         schedule_policy: SchedulePolicy,
+//     ) -> BackupJobSave {
+//         BackupJobSave {
+//             backup_type,
+//             description,
+//             id,
+//             is_enabled,
+//             name,
+//             repository_id,
+//             schedule_policy,
+//         }
+//     }
+// }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 #[serde(rename_all = "camelCase")]

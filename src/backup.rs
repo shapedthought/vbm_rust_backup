@@ -1,45 +1,20 @@
+use crate::getcreds::get_creds;
+use crate::models::credsmodel::CredsResponse;
+use crate::models::jobsmodel::{BackupJobs, BackupJobSave};
+use crate::models::othermodels::OrgData;
+use anyhow::Result;
+use chrono;
+use reqwest::header::{HeaderMap, ACCEPT, CONTENT_TYPE};
 use serde::de::DeserializeOwned;
 use serde_json::Value;
-use std::fs::{self, File};
-use std::io::Write;
 use spinners::{Spinner, Spinners};
-use chrono;
-use jobs::{BackupJobSave, BackupJobs};
-use reqwest::header::{HeaderMap, ACCEPT, CONTENT_TYPE};
-use anyhow::Result;
-use serde::{Deserialize, Serialize};
-
-#[derive(Debug, Deserialize, Serialize)]
-struct Response {
-    access_token: String,
-    token_type: String,
-    refresh_token: String,
-    expires_in: i32,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-struct Creds {
-    grant_type: String,
-    username: String,
-    password: String,
-    url: String,
-}
-
-#[derive(Debug, Deserialize)]
-struct OrgData {
-    id: String,
-    // name: String,
-}
+use std::fs::File;
+use std::io::Write;
 
 pub async fn get_backups() -> Result<()> {
     let sp = Spinner::new(Spinners::Dots9, "Running...".into());
 
-    let file = fs::read_to_string("creds.json").unwrap();
-    let mut creds: Creds = serde_json::from_str(&file).unwrap();
-    let pass_bytes = base64::decode(creds.password.as_bytes()).unwrap();
-    let password = String::from_utf8_lossy(&pass_bytes);
-
-    creds.password = password.to_string();
+    let creds = get_creds()?;
 
     let creds_urlenc = serde_urlencoded::to_string(&creds)?;
 
@@ -54,7 +29,7 @@ pub async fn get_backups() -> Result<()> {
         .danger_accept_invalid_certs(true)
         .build()?;
 
-    let res_json: Response = post_data(&client, &headers, &url, creds_urlenc).await?;
+    let res_json: CredsResponse = post_data(&client, &headers, &url, creds_urlenc).await?;
 
     let bearer = format!("Bearer {}", res_json.access_token);
     let mut req_header = HeaderMap::new();
@@ -77,60 +52,85 @@ pub async fn get_backups() -> Result<()> {
     }
 
     let mut select_jobs = Vec::new();
-    let mut non_select_jobs = Vec::new();
+    // let mut non_select_jobs = Vec::new();
     for i in jobs.iter() {
         for j in i.iter() {
+            let mut select_items: Option<Value> = None;
             if j.backup_type == "SelectedItems" {
                 let select_url = &j.links.selected_items.href;
-                let select_items: Value =
-                    get_data(&client, &req_header, &select_url).await.unwrap();
-
-                let new_job = BackupJobSave {
-                    backup_type: select_items,
-                    description: j.description.to_string(),
-                    id: j.id.to_string(),
-                    is_enabled: j.is_enabled,
-                    name: j.name.to_string(),
-                    repository_id: j.repository_id.to_string(),
-                    schedule_policy: j.schedule_policy.clone(),
-                };
-                select_jobs.push(new_job);
-            } else {
-                non_select_jobs.push(j);
+                select_items = Some(get_data(&client, &req_header, &select_url).await.unwrap());
             }
+            let new_job = BackupJobSave {
+                backup_type: j.backup_type.to_string(),
+                selected_items: select_items,
+                description: j.description.to_string(),
+                id: j.id.to_string(),
+                is_enabled: j.is_enabled,
+                name: j.name.to_string(),
+                repository_id: j.repository_id.to_string(),
+                schedule_policy: j.schedule_policy.clone(),
+                run_now: false
+            };
+            select_jobs.push(new_job)
         }
     }
+    // for i in jobs.iter() {
+    //     for j in i.iter() {
+    //         if j.backup_type == "SelectedItems" {
+    //             let select_url = &j.links.selected_items.href;
+    //             let select_items: Value =
+    //                 get_data(&client, &req_header, &select_url).await.unwrap();
+
+    //             let new_job = BackupJobSave {
+    //                 backup_type: select_items,
+    //                 description: j.description.to_string(),
+    //                 id: j.id.to_string(),
+    //                 is_enabled: j.is_enabled,
+    //                 name: j.name.to_string(),
+    //                 repository_id: j.repository_id.to_string(),
+    //                 schedule_policy: j.schedule_policy.clone(),
+    //             };
+    //             select_jobs.push(new_job);
+    //         } else {
+    //             non_select_jobs.push(j);
+    //         }
+    //     }
+    // }
 
     let date_time = chrono::offset::Local::now()
         .to_string()
         .replace(":", "-")
         .replace(" ", "_");
 
-    let select_string = format!("select_jobs_{date_time}.json");
-    let non_select_string = format!("non_select_jobs_{date_time}.json");
+    // let select_string = format!("select_jobs_{date_time}.json");
+    let select_string = format!("all_jobs_{date_time}.json");
+    // let non_select_string = format!("non_select_jobs_{date_time}.json");
 
-    if select_jobs.len() > 0 {
-        let mut file1 = File::create(select_string)?;
-        let string1 = serde_json::to_string(&select_jobs)?;
-        file1.write_all(string1.as_bytes())?;
-    } else {
-        println!("\nNo select jobs")
-    }
+    let mut file1 = File::create(select_string)?;
+    let string1 = serde_json::to_string(&select_jobs)?;
+    file1.write_all(string1.as_bytes())?;
 
-    if non_select_jobs.len() > 0 {
-        let mut file2 = File::create(non_select_string)?;
-        let string2 = serde_json::to_string(&non_select_jobs)?;
-        file2.write_all(string2.as_bytes())?;
-    } else {
-        println!("\nNo non-select jobs")
-    }
+    // if select_jobs.len() > 0 {
+    //     let mut file1 = File::create(select_string)?;
+    //     let string1 = serde_json::to_string(&select_jobs)?;
+    //     file1.write_all(string1.as_bytes())?;
+    // } else {
+    //     println!("\nNo select jobs")
+    // }
+
+    // if non_select_jobs.len() > 0 {
+    //     let mut file2 = File::create(non_select_string)?;
+    //     let string2 = serde_json::to_string(&non_select_jobs)?;
+    //     file2.write_all(string2.as_bytes())?;
+    // } else {
+    //     println!("\nNo non-select jobs")
+    // }
 
     sp.stop();
     println!("\nComplete!");
 
     Ok(())
 }
-
 
 pub async fn get_data<T: DeserializeOwned>(
     client: &reqwest::Client,
