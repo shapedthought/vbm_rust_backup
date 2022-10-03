@@ -34,7 +34,7 @@ pub struct BackupJobs2<T, U, V> {
 pub struct BackupJobSave {
     pub backup_type: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub selected_items: Option<Value>,
+    pub selected_items: Option<Vec<Value>>,
     pub description: String,
     pub id: String,
     pub is_enabled: bool,
@@ -47,15 +47,15 @@ pub struct BackupJobSave {
 #[derive(Debug, Deserialize, Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct SchedulePolicy {
-    backup_window_enabled: bool,
-    daily_time: String,
-    daily_type: String,
-    retry_enabled: bool,
-    retry_number: u8,
-    retry_wait_interval: u8,
-    schedule_enabled: bool,
+    pub backup_window_enabled: bool,
+    pub daily_time: String,
+    pub daily_type: String,
+    pub retry_enabled: bool,
+    pub retry_number: u8,
+    pub retry_wait_interval: u8,
+    pub schedule_enabled: bool,
     #[serde(rename(serialize = "type", deserialize = "type"))]
-    backup_type: String,
+    pub backup_type: String,
 }
 
 #[derive(Debug, Deserialize, Serialize)]

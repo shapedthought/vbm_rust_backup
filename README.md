@@ -10,8 +10,8 @@ CLI commands:
 
     Options:
         -r, --restore  Runs the restore action
-        -c, --creds    Create creds.json file
-        -t, --table    Print the info in a backup file in a table
+        -c, --creds    Create a creds.json file
+        -t, --table    Print the info in a backup file
         -h, --help     Print help information
         -V, --version  Print version information
 
@@ -22,10 +22,10 @@ If the tool will ask if you want to create the file and take you through a wizar
 creds.json file: 
 
     {
-    "grant_type": "password",
-    "username": "administrator@domain.com",
-    "password": "cGFzc3dvcmQK",
-    "url": "192.168.0.123"
+        "grant_type": "password",
+        "username": "administrator@domain.com",
+        "password": "cGFzc3dvcmQK",
+        "url": "192.168.0.123"
     }
 
 The password needs to be in base64 for a little bit of passive security. 
@@ -33,6 +33,7 @@ The password needs to be in base64 for a little bit of passive security.
 Using the -r / --restore flag the tool will take you through a wizard:
 
 1. Select the file you want to restore from
+    - The tool will look for json files in the directory with "job" in the name
 2. Select the job you want to restore
 3. Select the Org to restore to
 4. Select the Proxy you want to use

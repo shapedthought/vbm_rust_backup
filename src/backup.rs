@@ -67,7 +67,7 @@ pub async fn get_backups() -> Result<()> {
     // let mut non_select_jobs = Vec::new();
     for i in jobs.iter() {
         for j in i.iter() {
-            let mut select_items: Option<Value> = None;
+            let mut select_items: Option<Vec<Value>> = None;
             if j.backup_type == "SelectedItems" {
                 let select_url = &j.links.selected_items.href;
                 select_items = Some(get_data(&client, &req_header, &select_url).await.unwrap());
@@ -92,7 +92,9 @@ pub async fn get_backups() -> Result<()> {
         .replace(":", "-")
         .replace(" ", "_");
 
-    let select_string = format!("all_jobs_{date_time}.json");
+    let data_str: Vec<&str> = date_time.split(".").collect();
+
+    let select_string = format!("jobs_backup_{}.json", data_str[0]);
 
     let mut file1 = File::create(select_string)?;
     let string1 = serde_json::to_string(&select_jobs)?;

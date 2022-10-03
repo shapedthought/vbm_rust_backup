@@ -15,7 +15,7 @@ pub fn print_table() {
     for i in paths {
         let path = i.unwrap().path().to_str().unwrap().to_string();
 
-        if path.contains("jobs") {
+        if path.contains("job") {
             json_files.push(path);
         }
     }
@@ -29,7 +29,7 @@ pub fn print_table() {
     }
 
     let selection = Select::with_theme(&ColorfulTheme::default())
-        .with_prompt("Select Job file to restore from")
+        .with_prompt("Select job to print")
         .items(&file_strings)
         .default(0)
         .interact_on_opt(&Term::stderr())
@@ -39,6 +39,7 @@ pub fn print_table() {
     let selected_file = &json_files[selection];
     let file = fs::read_to_string(selected_file).unwrap();
     let backuped_jobs: Vec<BackupJobSave> = serde_json::from_str(&file).unwrap();
+
 
     let mut table = Table::new();
 
@@ -52,6 +53,8 @@ pub fn print_table() {
             "Description",
             "Repo ID",
             "Is Enabled",
+            "Schedule Type",
+            "Schedule Time"
         ]);
 
     for i in backuped_jobs.iter() {
@@ -60,12 +63,26 @@ pub fn print_table() {
         } else {
             "false".to_string()
         };
+
+        let daily_type = &i.schedule_policy.daily_type;
+        let daily_time = &i.schedule_policy.daily_time;
+
+        // let mut select_types: Option<Vec<Value>> = None;
+        // if i.backup_type == "SelectedItems" {
+        //     select_types = Some(i.selected_items.as_ref().unwrap().iter().map(|x| x["type"].clone()).collect::<Vec<Value>>());
+        // }
+
+        // let st_strings = format!("{:?}", select_types);
+
         table.add_row(vec![
             i.name.to_string(),
             i.backup_type.to_string(),
             i.description.to_string(),
             i.repository_id.to_string(),
             enabled_str,
+            daily_type.to_string(),
+            daily_time.to_string(),
+            // st_strings
         ]);
     }
 

@@ -20,11 +20,11 @@ struct Cli {
     #[arg(short, long)]
     restore: bool,
 
-    /// Create creds.json file
+    /// Create a creds.json file
     #[arg(short, long)]
     creds: bool,
 
-    /// Print the info in a backup file in a table
+    /// Print the info in a backup file
     #[arg(short, long)]
     table: bool,
 }

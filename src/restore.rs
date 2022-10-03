@@ -190,7 +190,7 @@ pub async fn do_restores() -> Result<()> {
     for i in paths {
         let path = i.unwrap().path().to_str().unwrap().to_string();
 
-        if path.contains("jobs") {
+        if path.contains("job") {
             json_files.push(path);
         }
     }
