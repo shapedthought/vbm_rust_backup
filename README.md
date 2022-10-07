@@ -1,6 +1,6 @@
-# VBM Job Backup 
+# VBM Job Backup
 
-This tool backs up and restores Veeam Backup for M365 jobs. 
+This tool backs up and restores Veeam Backup for M365 jobs.
 
 Currently only restores individual jobs.
 
@@ -15,7 +15,7 @@ CLI commands:
         -h, --help     Print help information
         -V, --version  Print version information
 
-For all operations a creds.json file is required. 
+For all operations a creds.json file is required.
 
     {
         "grant_type": "password",
@@ -40,7 +40,7 @@ The backup file is also encrypted with AES256 using a password which is a combin
 Using the -r / --restore flag the tool will take you through a wizard:
 
 1. Select the file you want to restore from
-    - The tool will look for files in the directory with "job" in the name
+   - The tool will look for files in the directory with "job" in the name
 2. Enter the backup password
 3. Select the job you want to restore
 4. Select the Org to restore to
@@ -50,28 +50,14 @@ Using the -r / --restore flag the tool will take you through a wizard:
 
 ## View Backup File Content
 
-Using the -t / --table flag the tool will ask you for the backup password and print a table with 
-information about the backups.
-
-✔ Select job to print · 0. ./jobs_backup_2022-10-07_07-44-57
-╭───────────────┬───────────────┬─────────────┬──────────────────────────────────────┬────────────┬───────────────┬───────────────╮
-│ Name          │ Backup Type   │ Description │ Repo ID                              │ Is Enabled │ Schedule Type │ Schedule Time │
-╞═══════════════╪═══════════════╪═════════════╪══════════════════════════════════════╪════════════╪═══════════════╪═══════════════╡
-│ Sharepoint    │ SelectedItems │             │ d671c38b-18ef-4662-bebe-21f94a586aaf │ true       │ Everyday      │ 22:00:00      │
-├───────────────┼───────────────┼─────────────┼──────────────────────────────────────┼────────────┼───────────────┼───────────────┤
-│ Teams         │ SelectedItems │             │ d671c38b-18ef-4662-bebe-21f94a586aaf │ true       │ Everyday      │ 22:00:00      │
-├───────────────┼───────────────┼─────────────┼──────────────────────────────────────┼────────────┼───────────────┼───────────────┤
-│ Onedrive site │ SelectedItems │             │ d671c38b-18ef-4662-bebe-21f94a586aaf │ true       │ Everyday      │ 22:00:00      │
-├───────────────┼───────────────┼─────────────┼──────────────────────────────────────┼────────────┼───────────────┼───────────────┤
-│ User Site     │ SelectedItems │             │ d671c38b-18ef-4662-bebe-21f94a586aaf │ true       │ Everyday      │ 22:00:00      │
-╰───────────────┴───────────────┴─────────────┴──────────────────────────────────────┴────────────┴───────────────┴───────────────╯
+Using the -t / --table flag the tool will ask you for the backup password and print a table with information about the backups.
 
 ## How to set up
 
-1. To use install RUST https://www.rust-lang.org/tools/install 
+1. To use install RUST https://www.rust-lang.org/tools/install
 2. Clone this repo
 3. Open terminal in the root directory
-3. Build
+4. Build
 
 Build command:
 
@@ -79,7 +65,6 @@ Build command:
 
 Compiled program will be under target/release
 
-Run the tool via a terminal 
+Run the tool via a terminal
 
     .\vbm_backup.exe
-
