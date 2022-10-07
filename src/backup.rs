@@ -11,6 +11,7 @@ use serde_json::Value;
 use spinners::{Spinner, Spinners};
 use std::fs::File;
 use std::io::Write;
+use magic_crypt::{new_magic_crypt, MagicCryptTrait};
 
 pub async fn get_backups() -> Result<()> {
     if std::path::Path::new("creds.json").exists() == false {
@@ -94,11 +95,17 @@ pub async fn get_backups() -> Result<()> {
 
     let data_str: Vec<&str> = date_time.split(".").collect();
 
-    let select_string = format!("jobs_backup_{}.json", data_str[0]);
+    let select_string = format!("jobs_backup_{}", data_str[0]);
+
+    let mc = new_magic_crypt!(creds.password, 256);
 
     let mut file1 = File::create(select_string)?;
     let string1 = serde_json::to_string(&select_jobs)?;
-    file1.write_all(string1.as_bytes())?;
+
+    let base64 = mc.encrypt_str_to_base64(string1);
+
+    // file1.write_all(string1.as_bytes())?;
+    file1.write_all(base64.as_bytes())?;
 
     sp.stop();
     println!("\nComplete!");

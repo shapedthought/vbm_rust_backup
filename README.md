@@ -17,6 +17,8 @@ CLI commands:
 
 By default the tool will backup as long as the creds.json file is present. 
 
+The output is encrypted with AES256 using the password supplied in the creds file.
+
 If the tool will ask if you want to create the file and take you through a wizard.
 
 creds.json file: 

@@ -5,9 +5,13 @@ use comfy_table::{modifiers::UTF8_SOLID_INNER_BORDERS, Table};
 use dialoguer::{console::Term, theme::ColorfulTheme, Select};
 use std::fs;
 
+use crate::getcreds::get_creds;
 use crate::models::jobsmodel::BackupJobSave;
+use magic_crypt::{new_magic_crypt, MagicCryptTrait};
 
 pub fn print_table() {
+    let creds = get_creds().unwrap();
+
     let paths = fs::read_dir(".").unwrap();
 
     let mut json_files = Vec::new();
@@ -38,8 +42,12 @@ pub fn print_table() {
 
     let selected_file = &json_files[selection];
     let file = fs::read_to_string(selected_file).unwrap();
-    let backuped_jobs: Vec<BackupJobSave> = serde_json::from_str(&file).unwrap();
 
+    let mc = new_magic_crypt!(creds.password, 256);
+
+    let decrypted_string = mc.decrypt_base64_to_string(file).unwrap();
+
+    let backuped_jobs: Vec<BackupJobSave> = serde_json::from_str(&decrypted_string).unwrap();
 
     let mut table = Table::new();
 
@@ -54,7 +62,7 @@ pub fn print_table() {
             "Repo ID",
             "Is Enabled",
             "Schedule Type",
-            "Schedule Time"
+            "Schedule Time",
         ]);
 
     for i in backuped_jobs.iter() {
@@ -66,13 +74,6 @@ pub fn print_table() {
 
         let daily_type = &i.schedule_policy.daily_type;
         let daily_time = &i.schedule_policy.daily_time;
-
-        // let mut select_types: Option<Vec<Value>> = None;
-        // if i.backup_type == "SelectedItems" {
-        //     select_types = Some(i.selected_items.as_ref().unwrap().iter().map(|x| x["type"].clone()).collect::<Vec<Value>>());
-        // }
-
-        // let st_strings = format!("{:?}", select_types);
 
         table.add_row(vec![
             i.name.to_string(),

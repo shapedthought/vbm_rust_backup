@@ -10,9 +10,9 @@ use dialoguer::{theme::ColorfulTheme, Confirm, Select};
 use reqwest::header::{HeaderMap, ACCEPT, CONTENT_TYPE};
 use serde::de::DeserializeOwned;
 use std::fs;
+use magic_crypt::{new_magic_crypt, MagicCryptTrait};
 
 use crate::models::servermodels::ProxyModel;
-// use serde_json::Value;
 
 #[derive(Debug)]
 #[allow(dead_code)]
@@ -28,6 +28,14 @@ struct RepoDetails {
     repo_name: String,
     repo_id: String,
     is_long_term: Option<bool>,
+}
+
+fn make_selection(text: &str, selections: &Vec<String>) -> Result<Option<usize>, std::io::Error> {
+    Select::with_theme(&ColorfulTheme::default())
+        .with_prompt(text)
+        .items(selections)
+        .default(0)
+        .interact_on_opt(&Term::stderr())
 }
 
 pub async fn run_restores(file_name: &String) -> Result<()> {
@@ -54,7 +62,6 @@ pub async fn run_restores(file_name: &String) -> Result<()> {
     req_header.insert("Authorization", bearer.parse()?);
 
     // get orgnainisations
-
     let org_url = format!("https://{}:4443/v6/Organizations/", creds.url);
     let org_data: Vec<OrgData> = get_data(&client, &req_header, &org_url).await?;
     let org_names: Vec<String> = org_data.iter().map(|x| x.name.clone()).collect();
@@ -88,7 +95,12 @@ pub async fn run_restores(file_name: &String) -> Result<()> {
 
     // Read the jobs file
     let file = fs::read_to_string(file_name)?;
-    let mut backuped_jobs: Vec<BackupJobSave> = serde_json::from_str(&file)?;
+
+    let mc = new_magic_crypt!(creds.password, 256);
+
+    let decrypt_string = mc.decrypt_base64_to_string(&file)?;
+
+    let mut backuped_jobs: Vec<BackupJobSave> = serde_json::from_str(&decrypt_string)?;
 
     let mut job_strings = Vec::new();
 
@@ -99,44 +111,28 @@ pub async fn run_restores(file_name: &String) -> Result<()> {
         job_strings.push(job_string);
     }
 
-    let selection = Select::with_theme(&ColorfulTheme::default())
-        .with_prompt("Select the job to restore:")
-        .items(&job_strings)
-        .default(0)
-        .interact_on_opt(&Term::stderr())?;
+    let selection = make_selection("Select the job to restore:", &job_strings)?;
 
     match selection {
         Some(index) => {
             let mut job = &mut backuped_jobs[index];
 
             // select org
-            let selection = Select::with_theme(&ColorfulTheme::default())
-                .with_prompt("Select Org to restore to")
-                .items(&org_names)
-                .default(0)
-                .interact_on_opt(&Term::stderr())?;
+            let selection = make_selection("Select Org to restore to", &org_names)?;
 
             let mut org_id: String = String::new();
             if let Some(i) = selection {
-                // println!("ID: {:?}, Name: {:?}", org_data[i].id, org_data[i].name);
                 org_id = org_data[i].id.clone();
             }
 
             // select proxy
-            let proxy_select = Select::with_theme(&ColorfulTheme::default())
-                .with_prompt("Select Proxy")
-                .items(&proxy_names)
-                .default(0)
-                .interact_on_opt(&Term::stderr())?;
+            let proxy_select = make_selection("Select Proxy", &proxy_names)?;
 
             if let Some(i) = proxy_select {
                 let repo_names: Vec<String> =
                     repos[i].repos.iter().map(|x| x.repo_name.clone()).collect();
-                let repo_select = Select::with_theme(&ColorfulTheme::default())
-                    .with_prompt("Select Repository")
-                    .items(&repo_names)
-                    .default(0)
-                    .interact_on_opt(&Term::stderr())?;
+
+                let repo_select = make_selection("Select Repository", &repo_names)?;
 
                 if let Some(j) = repo_select {
                     job.repository_id = repos[i].repos[j].repo_id.clone();
@@ -146,7 +142,6 @@ pub async fn run_restores(file_name: &String) -> Result<()> {
                             "https://{}:4443/v6/Organizations/{}/Jobs",
                             creds.url, org_id
                         );
-                        // println!("{:}", job_url);
                         let res = client
                             .post(job_url)
                             .headers(req_header)
@@ -208,7 +203,6 @@ pub async fn do_restores() -> Result<()> {
             }
         }
         2.. => {
-            // print_table(&json_files);
             let mut file_strings = Vec::new();
             for (i, v) in json_files.iter().enumerate() {
                 let str = v.to_owned();
@@ -217,11 +211,7 @@ pub async fn do_restores() -> Result<()> {
                 file_strings.push(job_string);
             }
 
-            let selection = Select::with_theme(&ColorfulTheme::default())
-                .with_prompt("Select Job file to restore from")
-                .items(&file_strings)
-                .default(0)
-                .interact_on_opt(&Term::stderr())?;
+            let selection = make_selection("Select Job file to restore from", &file_strings)?;
 
             match selection {
                 Some(index) => {

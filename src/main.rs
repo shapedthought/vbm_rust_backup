@@ -27,6 +27,7 @@ struct Cli {
     /// Print the info in a backup file
     #[arg(short, long)]
     table: bool,
+
 }
 
 #[tokio::main]

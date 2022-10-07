@@ -1,3 +1,4 @@
 /target
 *.json
 .DS_Store
+*jobs*
