@@ -1,17 +1,18 @@
 use crate::getcreds::{create_creds, get_creds};
-use crate::models::credsmodel::CredsResponse;
+use crate::models::credsmodel::{CredsResponse, Creds};
 use crate::models::jobsmodel::{BackupJobSave, BackupJobs};
 use crate::models::othermodels::OrgData;
 use anyhow::Result;
 use chrono;
 use dialoguer::Confirm;
+use magic_crypt::{new_magic_crypt, MagicCryptTrait};
 use reqwest::header::{HeaderMap, ACCEPT, CONTENT_TYPE};
 use serde::de::DeserializeOwned;
 use serde_json::Value;
 use spinners::{Spinner, Spinners};
 use std::fs::File;
 use std::io::Write;
-use magic_crypt::{new_magic_crypt, MagicCryptTrait};
+use base64;
 
 pub async fn get_backups() -> Result<()> {
     if std::path::Path::new("creds.json").exists() == false {
@@ -26,13 +27,20 @@ pub async fn get_backups() -> Result<()> {
         }
     }
 
-    let sp = Spinner::new(Spinners::Dots9, "Running Backup...".into());
-
     let creds = get_creds()?;
 
-    let creds_urlenc = serde_urlencoded::to_string(&creds)?;
+    let send_creds = Creds {
+        grant_type: creds.grant_type,
+        username: creds.username,
+        password: creds.password,
+        url: creds.url
+    };
 
-    let url = format!("https://{}:4443/v6/Token", creds.url);
+    let sp = Spinner::new(Spinners::Dots9, "Running Backup...".into());
+
+    let creds_urlenc = serde_urlencoded::to_string(&send_creds)?;
+
+    let url = format!("https://{}:4443/v6/Token", send_creds.url);
 
     let mut headers = HeaderMap::new();
     headers.insert(ACCEPT, "application/json".parse()?);
@@ -50,14 +58,14 @@ pub async fn get_backups() -> Result<()> {
     req_header.insert(CONTENT_TYPE, "application/json".parse()?);
     req_header.insert("Authorization", bearer.parse()?);
 
-    let org_url = format!("https://{}:4443/v6/Organizations/", creds.url);
+    let org_url = format!("https://{}:4443/v6/Organizations/", send_creds.url);
     let org_data: Vec<OrgData> = get_data(&client, &req_header, &org_url).await?;
 
     let mut jobs = Vec::new();
     for item in org_data.iter() {
         let url = format!(
             "https://{}:4443/v5/organizations/{}/Jobs",
-            creds.url, item.id
+            send_creds.url, item.id
         );
         let job: Vec<BackupJobs> = get_data(&client, &req_header, &url).await?;
 
@@ -97,7 +105,11 @@ pub async fn get_backups() -> Result<()> {
 
     let select_string = format!("jobs_backup_{}", data_str[0]);
 
-    let mc = new_magic_crypt!(creds.password, 256);
+    let extended_password = format!("{}:{}", creds.backup_password, send_creds.password);
+
+    let encrypt_password = base64::encode(extended_password.as_bytes());
+
+    let mc = new_magic_crypt!(encrypt_password, 256);
 
     let mut file1 = File::create(select_string)?;
     let string1 = serde_json::to_string(&select_jobs)?;

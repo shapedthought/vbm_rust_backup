@@ -1,5 +1,5 @@
 use crate::getcreds::{create_creds, get_creds};
-use crate::models::credsmodel::CredsResponse;
+use crate::models::credsmodel::{CredsResponse, Creds};
 use crate::models::jobsmodel::BackupJobSave;
 use crate::models::othermodels::OrgData;
 use crate::models::repomodel::RepoModel;
@@ -7,10 +7,10 @@ use anyhow::Result;
 use colored::*;
 use dialoguer::console::Term;
 use dialoguer::{theme::ColorfulTheme, Confirm, Select};
+use magic_crypt::{new_magic_crypt, MagicCryptTrait};
 use reqwest::header::{HeaderMap, ACCEPT, CONTENT_TYPE};
 use serde::de::DeserializeOwned;
 use std::fs;
-use magic_crypt::{new_magic_crypt, MagicCryptTrait};
 
 use crate::models::servermodels::ProxyModel;
 
@@ -41,9 +41,16 @@ fn make_selection(text: &str, selections: &Vec<String>) -> Result<Option<usize>,
 pub async fn run_restores(file_name: &String) -> Result<()> {
     let creds = get_creds().unwrap();
 
-    let creds_urlenc = serde_urlencoded::to_string(&creds)?;
+    let send_creds = Creds {
+        grant_type: creds.grant_type,
+        username: creds.username,
+        password: creds.password,
+        url: creds.url
+    };
 
-    let url = format!("https://{}:4443/v6/Token", creds.url);
+    let creds_urlenc = serde_urlencoded::to_string(&send_creds)?;
+
+    let url = format!("https://{}:4443/v6/Token", send_creds.url);
 
     let mut headers = HeaderMap::new();
     headers.insert(ACCEPT, "application/json".parse()?);
@@ -62,17 +69,17 @@ pub async fn run_restores(file_name: &String) -> Result<()> {
     req_header.insert("Authorization", bearer.parse()?);
 
     // get orgnainisations
-    let org_url = format!("https://{}:4443/v6/Organizations/", creds.url);
+    let org_url = format!("https://{}:4443/v6/Organizations/", send_creds.url);
     let org_data: Vec<OrgData> = get_data(&client, &req_header, &org_url).await?;
     let org_names: Vec<String> = org_data.iter().map(|x| x.name.clone()).collect();
 
     // get proxies
-    let proxy_url = format!("https://{}:4443/v6/Proxies?extendedView=true/", creds.url);
+    let proxy_url = format!("https://{}:4443/v6/Proxies?extendedView=true/", send_creds.url);
     let proxy_data: Vec<ProxyModel> = get_data(&client, &req_header, &proxy_url).await?;
 
     let mut repos: Vec<ProxyRepo> = Vec::new();
     for i in proxy_data {
-        let repo_url = format!("https://{}:4443/{}", creds.url, i.links.repositories.href);
+        let repo_url = format!("https://{}:4443/{}", send_creds.url, i.links.repositories.href);
         let repo_data: Vec<RepoModel> = get_data(&client, &req_header, &repo_url).await?;
 
         let repo_details: Vec<RepoDetails> = repo_data
@@ -96,7 +103,11 @@ pub async fn run_restores(file_name: &String) -> Result<()> {
     // Read the jobs file
     let file = fs::read_to_string(file_name)?;
 
-    let mc = new_magic_crypt!(creds.password, 256);
+    let extended_password = format!("{}:{}", creds.backup_password, send_creds.password);
+
+    let encrypt_password = base64::encode(extended_password.as_bytes());
+
+    let mc = new_magic_crypt!(encrypt_password, 256);
 
     let decrypt_string = mc.decrypt_base64_to_string(&file)?;
 
@@ -140,7 +151,7 @@ pub async fn run_restores(file_name: &String) -> Result<()> {
                     if Confirm::new().with_prompt("Restore?").interact()? {
                         let job_url = format!(
                             "https://{}:4443/v6/Organizations/{}/Jobs",
-                            creds.url, org_id
+                            send_creds.url, org_id
                         );
                         let res = client
                             .post(job_url)

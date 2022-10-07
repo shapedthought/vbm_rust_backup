@@ -8,6 +8,14 @@ pub struct Creds {
     pub url: String,
 }
 
+pub struct CredsExtended {
+    pub backup_password: String, 
+    pub grant_type: String,
+    pub username: String,
+    pub password: String,
+    pub url: String,
+}
+
 #[derive(Debug, Deserialize, Serialize)]
 pub struct CredsResponse {
     pub access_token: String,

@@ -3,17 +3,39 @@ use std::{
     io::Write,
 };
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 use dialoguer::{Input, Password};
+use magic_crypt::{new_magic_crypt, MagicCryptTrait};
 
-use crate::models::credsmodel::Creds;
+use crate::models::credsmodel::{Creds, CredsExtended};
 
-pub fn get_creds() -> Result<Creds> {
+pub fn get_creds() -> Result<CredsExtended> {
     let file = fs::read_to_string("creds.json")?;
-    let mut creds: Creds = serde_json::from_str(&file)?;
-    let pass_bytes = base64::decode(creds.password.as_bytes())?;
-    creds.password = String::from_utf8_lossy(&pass_bytes).to_string();
-    Ok(creds)
+    let creds: Creds = serde_json::from_str(&file)?;
+    // let pass_bytes = base64::decode(creds.password.as_bytes())?;
+
+    let bu_password = Password::new()
+        .with_prompt("Enter Backup password")
+        .interact()
+        .unwrap();
+
+    let mc = new_magic_crypt!(&bu_password, 256);
+
+    let decrypt_string = mc
+        .decrypt_base64_to_string(&creds.password)
+        .with_context(|| format!("Wrong password!"))?;
+
+    // creds.password = decrypt_string;
+
+    let creds_extended = CredsExtended {
+        backup_password: bu_password,
+        grant_type: creds.grant_type,
+        username: creds.username,
+        url: creds.url,
+        password: decrypt_string,
+    };
+
+    Ok(creds_extended)
 }
 
 pub fn create_creds() {
@@ -25,17 +47,26 @@ pub fn create_creds() {
     let url: String = Input::new().with_prompt("Address").interact_text().unwrap();
 
     let password = Password::new()
-        .with_prompt("Enter password")
+        .with_prompt("Enter VB365 password")
         .with_confirmation("Confirm password", "Passwords mismatching")
         .interact()
         .unwrap();
 
-    let b64 = base64::encode(password.as_bytes());
+    let bu_password = Password::new()
+        .with_prompt("Enter Backup password")
+        .with_confirmation("Confirm password", "Passwords mismatching")
+        .interact()
+        .unwrap();
+
+    let mc = new_magic_crypt!(bu_password, 256);
+    let base64 = mc.encrypt_str_to_base64(password);
+
+    // let b64 = base64::encode(password.as_bytes());
 
     let creds = Creds {
         grant_type: "password".to_string(),
         username,
-        password: b64,
+        password: base64,
         url,
     };
 

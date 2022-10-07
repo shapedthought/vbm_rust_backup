@@ -43,7 +43,11 @@ pub fn print_table() {
     let selected_file = &json_files[selection];
     let file = fs::read_to_string(selected_file).unwrap();
 
-    let mc = new_magic_crypt!(creds.password, 256);
+    let extended_password = format!("{}:{}", creds.backup_password, creds.password);
+
+    let encrypt_password = base64::encode(extended_password.as_bytes());
+
+    let mc = new_magic_crypt!(encrypt_password, 256);
 
     let decrypted_string = mc.decrypt_base64_to_string(file).unwrap();
 

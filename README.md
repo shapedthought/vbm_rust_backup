@@ -15,13 +15,7 @@ CLI commands:
         -h, --help     Print help information
         -V, --version  Print version information
 
-By default the tool will backup as long as the creds.json file is present. 
-
-The output is encrypted with AES256 using the password supplied in the creds file.
-
-If the tool will ask if you want to create the file and take you through a wizard.
-
-creds.json file: 
+For all operations a creds.json file is required. 
 
     {
         "grant_type": "password",
@@ -30,17 +24,29 @@ creds.json file:
         "url": "192.168.0.123"
     }
 
-The password needs to be in base64 for a little bit of passive security. 
+The password is for VB365 but is encrypted with a backup password which you enter when you create the file using
+the --creds flag.
+
+Having the password in the creds file be encrypted means that non-admin users to use the tool without providing them with the credentials of VB365.
+
+## Backup
+
+To run a backup just run without any flags, it will prompt for the backup password, if correct it will run the job backup.
+
+The backup file is also encrypted with AES256 using a password which is a combination of both the backup and VB365 passwords.
+
+## Restore
 
 Using the -r / --restore flag the tool will take you through a wizard:
 
 1. Select the file you want to restore from
-    - The tool will look for json files in the directory with "job" in the name
-2. Select the job you want to restore
-3. Select the Org to restore to
-4. Select the Proxy you want to use
-5. Select the Repo you want to use
-6. Confirm the restore
+    - The tool will look for files in the directory with "job" in the name
+2. Enter the backup password
+3. Select the job you want to restore
+4. Select the Org to restore to
+5. Select the Proxy you want to use
+6. Select the Repo you want to use
+7. Confirm the restore
 
 ## How to set up
 
