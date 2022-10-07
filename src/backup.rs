@@ -1,8 +1,9 @@
 use crate::getcreds::{create_creds, get_creds};
-use crate::models::credsmodel::{CredsResponse, Creds};
+use crate::models::credsmodel::{Creds, CredsResponse};
 use crate::models::jobsmodel::{BackupJobSave, BackupJobs};
 use crate::models::othermodels::OrgData;
 use anyhow::Result;
+use base64;
 use chrono;
 use dialoguer::Confirm;
 use magic_crypt::{new_magic_crypt, MagicCryptTrait};
@@ -12,7 +13,6 @@ use serde_json::Value;
 use spinners::{Spinner, Spinners};
 use std::fs::File;
 use std::io::Write;
-use base64;
 
 pub async fn get_backups() -> Result<()> {
     if std::path::Path::new("creds.json").exists() == false {
@@ -33,7 +33,7 @@ pub async fn get_backups() -> Result<()> {
         grant_type: creds.grant_type,
         username: creds.username,
         password: creds.password,
-        url: creds.url
+        url: creds.url,
     };
 
     let sp = Spinner::new(Spinners::Dots9, "Running Backup...".into());

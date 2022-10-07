@@ -1,5 +1,5 @@
 use crate::getcreds::{create_creds, get_creds};
-use crate::models::credsmodel::{CredsResponse, Creds};
+use crate::models::credsmodel::{Creds, CredsExtended, CredsResponse};
 use crate::models::jobsmodel::BackupJobSave;
 use crate::models::othermodels::OrgData;
 use crate::models::repomodel::RepoModel;
@@ -38,15 +38,13 @@ fn make_selection(text: &str, selections: &Vec<String>) -> Result<Option<usize>,
         .interact_on_opt(&Term::stderr())
 }
 
-pub async fn run_restores(file_name: &String) -> Result<()> {
-    let creds = get_creds().unwrap();
-
-    let send_creds = Creds {
-        grant_type: creds.grant_type,
-        username: creds.username,
-        password: creds.password,
-        url: creds.url
-    };
+pub async fn run_restores(file_name: &String, creds: &CredsExtended) -> Result<()> {
+    let send_creds = Creds::new(
+        creds.grant_type.clone(),
+        creds.username.clone(),
+        creds.password.clone(),
+        creds.url.clone(),
+    );
 
     let creds_urlenc = serde_urlencoded::to_string(&send_creds)?;
 
@@ -74,12 +72,18 @@ pub async fn run_restores(file_name: &String) -> Result<()> {
     let org_names: Vec<String> = org_data.iter().map(|x| x.name.clone()).collect();
 
     // get proxies
-    let proxy_url = format!("https://{}:4443/v6/Proxies?extendedView=true/", send_creds.url);
+    let proxy_url = format!(
+        "https://{}:4443/v6/Proxies?extendedView=true/",
+        send_creds.url
+    );
     let proxy_data: Vec<ProxyModel> = get_data(&client, &req_header, &proxy_url).await?;
 
     let mut repos: Vec<ProxyRepo> = Vec::new();
     for i in proxy_data {
-        let repo_url = format!("https://{}:4443/{}", send_creds.url, i.links.repositories.href);
+        let repo_url = format!(
+            "https://{}:4443/{}",
+            send_creds.url, i.links.repositories.href
+        );
         let repo_data: Vec<RepoModel> = get_data(&client, &req_header, &repo_url).await?;
 
         let repo_details: Vec<RepoDetails> = repo_data
@@ -201,6 +205,8 @@ pub async fn do_restores() -> Result<()> {
         }
     }
 
+    let creds = get_creds()?;
+
     match json_files.len() {
         1 => {
             println!("File found: {}", json_files[0]);
@@ -208,7 +214,14 @@ pub async fn do_restores() -> Result<()> {
                 .with_prompt("Do you want to continue?")
                 .interact()?
             {
-                run_restores(&json_files[0]).await?;
+                loop {
+                    run_restores(&json_files[0], &creds).await?;
+                    if Confirm::new().with_prompt("Restore?").interact()? {
+                        continue;
+                    } else {
+                        break;
+                    }
+                }
             } else {
                 println!("nevermind then :(");
             }
@@ -227,7 +240,14 @@ pub async fn do_restores() -> Result<()> {
             match selection {
                 Some(index) => {
                     let file = &json_files[index];
-                    run_restores(file).await?;
+                    loop {
+                        run_restores(file, &creds).await?;
+                        if Confirm::new().with_prompt("Run another?").interact()? {
+                            continue;
+                        } else {
+                            break;
+                        }
+                    }
                 }
                 None => println!("Nothing selected"),
             }

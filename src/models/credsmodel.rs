@@ -8,8 +8,19 @@ pub struct Creds {
     pub url: String,
 }
 
+impl Creds {
+    pub fn new(grant_type: String, username: String, password: String, url: String) -> Creds {
+        Creds {
+            grant_type,
+            username,
+            password,
+            url,
+        }
+    }
+}
+
 pub struct CredsExtended {
-    pub backup_password: String, 
+    pub backup_password: String,
     pub grant_type: String,
     pub username: String,
     pub password: String,

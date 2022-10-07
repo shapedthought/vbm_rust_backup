@@ -47,6 +47,7 @@ Using the -r / --restore flag the tool will take you through a wizard:
 5. Select the Proxy you want to use
 6. Select the Repo you want to use
 7. Confirm the restore
+8. It will ask if you want to restore another backup
 
 ## View Backup File Content
 
