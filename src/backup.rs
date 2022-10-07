@@ -20,7 +20,7 @@ pub async fn get_backups() -> Result<()> {
             .with_prompt("No creds.json file, create?")
             .interact()?
         {
-            create_creds()
+            create_creds()?;
         } else {
             println!("Exiting...");
             std::process::exit(1);
@@ -79,7 +79,8 @@ pub async fn get_backups() -> Result<()> {
             let mut select_items: Option<Vec<Value>> = None;
             if j.backup_type == "SelectedItems" {
                 let select_url = &j.links.selected_items.href;
-                select_items = Some(get_data(&client, &req_header, &select_url).await.unwrap());
+                let data = get_data(&client, &req_header, &select_url).await?;
+                select_items = Some(data);
             }
             let new_job = BackupJobSave {
                 backup_type: j.backup_type.to_string(),

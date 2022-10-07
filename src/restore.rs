@@ -187,7 +187,7 @@ pub async fn do_restores() -> Result<()> {
             .with_prompt("No creds.json file, create?")
             .interact()?
         {
-            create_creds();
+            create_creds()?;
         } else {
             println!("Exiting...");
             std::process::exit(1);
@@ -198,7 +198,7 @@ pub async fn do_restores() -> Result<()> {
     let mut json_files = Vec::new();
 
     for i in paths {
-        let path = i.unwrap().path().to_str().unwrap().to_string();
+        let path = i?.path().to_str().unwrap().to_string();
 
         if path.contains("job") {
             json_files.push(path);

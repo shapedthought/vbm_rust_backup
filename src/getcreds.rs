@@ -16,16 +16,13 @@ pub fn get_creds() -> Result<CredsExtended> {
 
     let bu_password = Password::new()
         .with_prompt("Enter Backup password")
-        .interact()
-        .unwrap();
+        .interact()?;
 
     let mc = new_magic_crypt!(&bu_password, 256);
 
     let decrypt_string = mc
         .decrypt_base64_to_string(&creds.password)
         .with_context(|| format!("Wrong password!"))?;
-
-    // creds.password = decrypt_string;
 
     let creds_extended = CredsExtended {
         backup_password: bu_password,
@@ -38,30 +35,23 @@ pub fn get_creds() -> Result<CredsExtended> {
     Ok(creds_extended)
 }
 
-pub fn create_creds() {
-    let username: String = Input::new()
-        .with_prompt("Username")
-        .interact_text()
-        .unwrap();
+pub fn create_creds() -> Result<()> {
+    let username: String = Input::new().with_prompt("Username").interact_text()?;
 
-    let url: String = Input::new().with_prompt("Address").interact_text().unwrap();
+    let url: String = Input::new().with_prompt("Address").interact_text()?;
 
     let password = Password::new()
         .with_prompt("Enter VB365 password")
         .with_confirmation("Confirm password", "Passwords mismatching")
-        .interact()
-        .unwrap();
+        .interact()?;
 
     let bu_password = Password::new()
         .with_prompt("Enter Backup password")
         .with_confirmation("Confirm password", "Passwords mismatching")
-        .interact()
-        .unwrap();
+        .interact()?;
 
     let mc = new_magic_crypt!(bu_password, 256);
     let base64 = mc.encrypt_str_to_base64(password);
-
-    // let b64 = base64::encode(password.as_bytes());
 
     let creds = Creds {
         grant_type: "password".to_string(),
@@ -70,8 +60,10 @@ pub fn create_creds() {
         url,
     };
 
-    let mut file1 = File::create("creds.json").unwrap();
-    let string1 = serde_json::to_string(&creds).unwrap();
-    file1.write_all(string1.as_bytes()).unwrap();
-    println!("Done")
+    let mut file1 = File::create("creds.json")?;
+    let string1 = serde_json::to_string(&creds)?;
+    file1.write_all(string1.as_bytes())?;
+    println!("Done");
+
+    Ok(())
 }

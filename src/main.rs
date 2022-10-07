@@ -35,12 +35,12 @@ async fn main() -> Result<()> {
     let cli = Cli::parse();
 
     if cli.table {
-        print_table();
+        print_table()?;
         std::process::exit(1);
     }
 
     if cli.creds {
-        create_creds();
+        create_creds()?;
         std::process::exit(1);
     }
 

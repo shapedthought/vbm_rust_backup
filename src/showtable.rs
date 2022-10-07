@@ -1,6 +1,7 @@
 use comfy_table::modifiers::UTF8_ROUND_CORNERS;
 use comfy_table::presets::UTF8_FULL;
 // use comfy_table::ContentArrangement;
+use anyhow::{Context, Result};
 use comfy_table::{modifiers::UTF8_SOLID_INNER_BORDERS, Table};
 use dialoguer::{console::Term, theme::ColorfulTheme, Select};
 use std::fs;
@@ -9,15 +10,15 @@ use crate::getcreds::get_creds;
 use crate::models::jobsmodel::BackupJobSave;
 use magic_crypt::{new_magic_crypt, MagicCryptTrait};
 
-pub fn print_table() {
-    let creds = get_creds().unwrap();
+pub fn print_table() -> Result<()> {
+    let creds = get_creds()?;
 
-    let paths = fs::read_dir(".").unwrap();
+    let paths = fs::read_dir(".").with_context(|| format!("Failed to read file"))?;
 
     let mut json_files = Vec::new();
 
     for i in paths {
-        let path = i.unwrap().path().to_str().unwrap().to_string();
+        let path = i?.path().to_str().unwrap().to_string();
 
         if path.contains("job") {
             json_files.push(path);
@@ -36,12 +37,11 @@ pub fn print_table() {
         .with_prompt("Select job to print")
         .items(&file_strings)
         .default(0)
-        .interact_on_opt(&Term::stderr())
-        .unwrap()
+        .interact_on_opt(&Term::stderr())?
         .unwrap();
 
     let selected_file = &json_files[selection];
-    let file = fs::read_to_string(selected_file).unwrap();
+    let file = fs::read_to_string(selected_file)?;
 
     let extended_password = format!("{}:{}", creds.backup_password, creds.password);
 
@@ -49,9 +49,11 @@ pub fn print_table() {
 
     let mc = new_magic_crypt!(encrypt_password, 256);
 
-    let decrypted_string = mc.decrypt_base64_to_string(file).unwrap();
+    let decrypted_string = mc
+        .decrypt_base64_to_string(file)
+        .with_context(|| format!("Wrong Password!"))?;
 
-    let backuped_jobs: Vec<BackupJobSave> = serde_json::from_str(&decrypted_string).unwrap();
+    let backuped_jobs: Vec<BackupJobSave> = serde_json::from_str(&decrypted_string)?;
 
     let mut table = Table::new();
 
@@ -91,5 +93,7 @@ pub fn print_table() {
         ]);
     }
 
-    println!("{table}")
+    println!("{table}");
+
+    Ok(())
 }
