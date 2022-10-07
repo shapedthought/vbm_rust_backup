@@ -48,6 +48,24 @@ Using the -r / --restore flag the tool will take you through a wizard:
 6. Select the Repo you want to use
 7. Confirm the restore
 
+## View Backup File Content
+
+Using the -t / --table flag the tool will ask you for the backup password and print a table with 
+information about the backups.
+
+✔ Select job to print · 0. ./jobs_backup_2022-10-07_07-44-57
+╭───────────────┬───────────────┬─────────────┬──────────────────────────────────────┬────────────┬───────────────┬───────────────╮
+│ Name          │ Backup Type   │ Description │ Repo ID                              │ Is Enabled │ Schedule Type │ Schedule Time │
+╞═══════════════╪═══════════════╪═════════════╪══════════════════════════════════════╪════════════╪═══════════════╪═══════════════╡
+│ Sharepoint    │ SelectedItems │             │ d671c38b-18ef-4662-bebe-21f94a586aaf │ true       │ Everyday      │ 22:00:00      │
+├───────────────┼───────────────┼─────────────┼──────────────────────────────────────┼────────────┼───────────────┼───────────────┤
+│ Teams         │ SelectedItems │             │ d671c38b-18ef-4662-bebe-21f94a586aaf │ true       │ Everyday      │ 22:00:00      │
+├───────────────┼───────────────┼─────────────┼──────────────────────────────────────┼────────────┼───────────────┼───────────────┤
+│ Onedrive site │ SelectedItems │             │ d671c38b-18ef-4662-bebe-21f94a586aaf │ true       │ Everyday      │ 22:00:00      │
+├───────────────┼───────────────┼─────────────┼──────────────────────────────────────┼────────────┼───────────────┼───────────────┤
+│ User Site     │ SelectedItems │             │ d671c38b-18ef-4662-bebe-21f94a586aaf │ true       │ Everyday      │ 22:00:00      │
+╰───────────────┴───────────────┴─────────────┴──────────────────────────────────────┴────────────┴───────────────┴───────────────╯
+
 ## How to set up
 
 1. To use install RUST https://www.rust-lang.org/tools/install 
