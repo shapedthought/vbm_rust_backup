@@ -27,7 +27,7 @@ For all operations a creds.json file is required.
 The password is for VB365 but is encrypted with a backup password which you enter when you create the file using
 the --creds flag.
 
-Having the password in the creds file be encrypted means that non-admin users to use the tool without providing them with the credentials of VB365.
+Having the VB365 password encrypted means that non-admin users to use the tool without providing them with the credentials of VB365.
 
 ## Backup
 
