@@ -6,6 +6,7 @@ use crate::models::repomodel::RepoModel;
 use anyhow::Result;
 use colored::*;
 use dialoguer::console::Term;
+// use dialoguer::MultiSelect;
 use dialoguer::{theme::ColorfulTheme, Confirm, Select};
 use magic_crypt::{new_magic_crypt, MagicCryptTrait};
 use reqwest::header::{HeaderMap, ACCEPT, CONTENT_TYPE};
@@ -67,22 +68,25 @@ pub async fn run_restores(file_name: &String, creds: &CredsExtended) -> Result<(
     req_header.insert("Authorization", bearer.parse()?);
 
     // get orgnainisations
-    let org_url = format!("https://{}:4443/v6/Organizations/", send_creds.url);
+    let org_url = format!(
+        "https://{}:{}/{}/Organizations/",
+        send_creds.url, creds.port, creds.api_version
+    );
     let org_data: Vec<OrgData> = get_data(&client, &req_header, &org_url).await?;
     let org_names: Vec<String> = org_data.iter().map(|x| x.name.clone()).collect();
 
     // get proxies
     let proxy_url = format!(
-        "https://{}:4443/v6/Proxies?extendedView=true/",
-        send_creds.url
+        "https://{}:{}/{}/Proxies?extendedView=true/",
+        send_creds.url, creds.port, creds.api_version
     );
     let proxy_data: Vec<ProxyModel> = get_data(&client, &req_header, &proxy_url).await?;
 
     let mut repos: Vec<ProxyRepo> = Vec::new();
     for i in proxy_data {
         let repo_url = format!(
-            "https://{}:4443/{}",
-            send_creds.url, i.links.repositories.href
+            "https://{}:{}/{}",
+            send_creds.url, creds.port, i.links.repositories.href
         );
         let repo_data: Vec<RepoModel> = get_data(&client, &req_header, &repo_url).await?;
 
@@ -154,8 +158,8 @@ pub async fn run_restores(file_name: &String, creds: &CredsExtended) -> Result<(
 
                     if Confirm::new().with_prompt("Restore?").interact()? {
                         let job_url = format!(
-                            "https://{}:4443/v6/Organizations/{}/Jobs",
-                            send_creds.url, org_id
+                            "https://{}:{}/{}/Organizations/{}/Jobs",
+                            send_creds.url, creds.port, creds.api_version, org_id
                         );
                         let res = client
                             .post(job_url)
@@ -216,7 +220,7 @@ pub async fn do_restores() -> Result<()> {
             {
                 loop {
                     run_restores(&json_files[0], &creds).await?;
-                    if Confirm::new().with_prompt("Restore?").interact()? {
+                    if Confirm::new().with_prompt("Run another?").interact()? {
                         continue;
                     } else {
                         break;

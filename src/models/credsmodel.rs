@@ -1,6 +1,16 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct ReadCreds {
+    pub grant_type: String,
+    pub username: String,
+    pub password: String,
+    pub url: String,
+    pub port: u16,
+    pub api_version: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Creds {
     pub grant_type: String,
     pub username: String,
@@ -25,6 +35,8 @@ pub struct CredsExtended {
     pub username: String,
     pub password: String,
     pub url: String,
+    pub port: u16,
+    pub api_version: String,
 }
 
 #[derive(Debug, Deserialize, Serialize)]

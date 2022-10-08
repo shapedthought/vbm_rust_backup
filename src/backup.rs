@@ -40,7 +40,10 @@ pub async fn get_backups() -> Result<()> {
 
     let creds_urlenc = serde_urlencoded::to_string(&send_creds)?;
 
-    let url = format!("https://{}:4443/v6/Token", send_creds.url);
+    let url = format!(
+        "https://{}:{}/{}/Token",
+        send_creds.url, creds.port, creds.api_version
+    );
 
     let mut headers = HeaderMap::new();
     headers.insert(ACCEPT, "application/json".parse()?);
@@ -58,14 +61,17 @@ pub async fn get_backups() -> Result<()> {
     req_header.insert(CONTENT_TYPE, "application/json".parse()?);
     req_header.insert("Authorization", bearer.parse()?);
 
-    let org_url = format!("https://{}:4443/v6/Organizations/", send_creds.url);
+    let org_url = format!(
+        "https://{}:{}/{}/Organizations/",
+        send_creds.url, creds.port, creds.api_version
+    );
     let org_data: Vec<OrgData> = get_data(&client, &req_header, &org_url).await?;
 
     let mut jobs = Vec::new();
     for item in org_data.iter() {
         let url = format!(
-            "https://{}:4443/v5/organizations/{}/Jobs",
-            send_creds.url, item.id
+            "https://{}:{}/{}/organizations/{}/Jobs",
+            send_creds.url, creds.port, creds.api_version, item.id
         );
         let job: Vec<BackupJobs> = get_data(&client, &req_header, &url).await?;
 
@@ -78,7 +84,18 @@ pub async fn get_backups() -> Result<()> {
         for j in i.iter() {
             let mut select_items: Option<Vec<Value>> = None;
             if j.backup_type == "SelectedItems" {
-                let select_url = &j.links.selected_items.href;
+                let href = &j.links.selected_items.href;
+
+                let version_number = creds.api_version.split_at(1).1.parse::<u8>()?;
+
+                let select_url: String;
+                if version_number > 5 {
+                    select_url = format!("https://{}:{}/{}", send_creds.url, creds.port, href);
+                } else {
+                    select_url = href.to_string()
+                }
+
+                // let select_url = format!("https://{}:{}/{}", send_creds.url, creds.port, href);
                 let data = get_data(&client, &req_header, &select_url).await?;
                 select_items = Some(data);
             }

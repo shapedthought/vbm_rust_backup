@@ -2,6 +2,8 @@
 
 This tool backs up and restores Veeam Backup for M365 jobs.
 
+NOTE: This has been tested on v6, but it should work on earlier versions.
+
 Currently only restores individual jobs.
 
 CLI commands:
@@ -21,7 +23,9 @@ For all operations a creds.json file is required.
         "grant_type": "password",
         "username": "administrator@domain.com",
         "password": "cGFzc3dvcmQK",
-        "url": "192.168.0.123"
+        "url": "192.168.0.123",
+        "port" 4443,
+        "api_version": "v6"
     }
 
 The password is for VB365 but is encrypted with a backup password which you enter when you create the file using
