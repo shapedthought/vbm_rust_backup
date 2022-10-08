@@ -6,7 +6,7 @@ use crate::models::repomodel::RepoModel;
 use anyhow::Result;
 use colored::*;
 use dialoguer::console::Term;
-// use dialoguer::MultiSelect;
+use dialoguer::MultiSelect;
 use dialoguer::{theme::ColorfulTheme, Confirm, Select};
 use magic_crypt::{new_magic_crypt, MagicCryptTrait};
 use reqwest::header::{HeaderMap, ACCEPT, CONTENT_TYPE};
@@ -130,56 +130,60 @@ pub async fn run_restores(file_name: &String, creds: &CredsExtended) -> Result<(
         job_strings.push(job_string);
     }
 
-    let selection = make_selection("Select the job to restore:", &job_strings)?;
+    let chosen : Vec<usize> = MultiSelect::new()
+        .items(&job_strings)
+        .report(true)
+        .with_prompt("Select Backups to Restore")
+        .interact()?;
 
-    match selection {
-        Some(index) => {
-            let mut job = &mut backuped_jobs[index];
+    for i in chosen {
+        let mut job = &mut backuped_jobs[i];
 
-            // select org
-            let selection = make_selection("Select Org to restore to", &org_names)?;
+        println!("{} Options", job.name);
 
-            let mut org_id: String = String::new();
-            if let Some(i) = selection {
-                org_id = org_data[i].id.clone();
-            }
+        // select org
+        let selection = make_selection("Select Org to restore to", &org_names)?;
 
-            // select proxy
-            let proxy_select = make_selection("Select Proxy", &proxy_names)?;
+        let mut org_id: String = String::new();
+        if let Some(i) = selection {
+            org_id = org_data[i].id.clone();
+        }
 
-            if let Some(i) = proxy_select {
-                let repo_names: Vec<String> =
-                    repos[i].repos.iter().map(|x| x.repo_name.clone()).collect();
+        // select proxy
+        let proxy_select = make_selection("Select Proxy", &proxy_names)?;
 
-                let repo_select = make_selection("Select Repository", &repo_names)?;
+        if let Some(i) = proxy_select {
+            let repo_names: Vec<String> =
+                repos[i].repos.iter().map(|x| x.repo_name.clone()).collect();
 
-                if let Some(j) = repo_select {
-                    job.repository_id = repos[i].repos[j].repo_id.clone();
+            let repo_select = make_selection("Select Repository", &repo_names)?;
 
-                    if Confirm::new().with_prompt("Restore?").interact()? {
-                        let job_url = format!(
-                            "https://{}:{}/{}/Organizations/{}/Jobs",
-                            send_creds.url, creds.port, creds.api_version, org_id
-                        );
-                        let res = client
-                            .post(job_url)
-                            .headers(req_header)
-                            .json(&job)
-                            .send()
-                            .await?;
+            if let Some(j) = repo_select {
+                job.repository_id = repos[i].repos[j].repo_id.clone();
 
-                        if res.status().is_success() {
-                            println!("{}", "success!".green())
-                        } else {
-                            println!("{}", "error!".red())
-                        }
+                if Confirm::new().with_prompt("Restore?").interact()? {
+                    let job_url = format!(
+                        "https://{}:{}/{}/Organizations/{}/Jobs",
+                        send_creds.url, creds.port, creds.api_version, org_id
+                    );
+                    let res = client
+                        .post(job_url)
+                        .headers(req_header.clone())
+                        .json(&job)
+                        .send()
+                        .await?;
+
+                    if res.status().is_success() {
+                        println!("{}", "success!".green())
                     } else {
-                        println!("Cancelled..");
+                        println!("{}", "error!".red())
                     }
+                } else {
+                    println!("Cancelled..");
                 }
             }
         }
-        None => println!("Nothing selected"),
+
     }
 
     Ok(())
