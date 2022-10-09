@@ -6,6 +6,7 @@ use std::{
 use anyhow::{Context, Result};
 use dialoguer::{Input, Password};
 use magic_crypt::{new_magic_crypt, MagicCryptTrait};
+use base64;
 
 use crate::models::credsmodel::{CredsExtended, ReadCreds};
 
@@ -18,7 +19,11 @@ pub fn get_creds() -> Result<CredsExtended> {
         .with_prompt("Enter Backup password")
         .interact()?;
 
-    let mc = new_magic_crypt!(&bu_password, 256);
+    let user_name_base64 = base64::encode(&creds.username);
+
+    let password_extended = format!("{}:{}", user_name_base64, bu_password);
+
+    let mc = new_magic_crypt!(&password_extended, 256);
 
     let decrypt_string = mc
         .decrypt_base64_to_string(&creds.password)
@@ -62,7 +67,11 @@ pub fn create_creds() -> Result<()> {
         .with_confirmation("Confirm password", "Passwords mismatching")
         .interact()?;
 
-    let mc = new_magic_crypt!(bu_password, 256);
+    let user_name_base64 = base64::encode(username.as_bytes());
+
+    let password_extended = format!("{}:{}", user_name_base64, bu_password);
+
+    let mc = new_magic_crypt!(password_extended, 256);
     let base64 = mc.encrypt_str_to_base64(password);
 
     let creds = ReadCreds {
