@@ -1,6 +1,6 @@
 use crate::getcreds::{create_creds, get_creds};
 use crate::models::credsmodel::{Creds, CredsExtended, CredsResponse};
-use crate::models::jobsmodel::BackupJobSave;
+use crate::models::jobsmodel::{BackupJobSave, BackupJobs};
 use crate::models::othermodels::OrgData;
 use crate::models::repomodel::RepoModel;
 use anyhow::Result;
@@ -75,6 +75,12 @@ pub async fn run_restores(file_name: &String, creds: &CredsExtended) -> Result<(
     let org_data: Vec<OrgData> = get_data(&client, &req_header, &org_url).await?;
     let org_names: Vec<String> = org_data.iter().map(|x| x.name.clone()).collect();
 
+    // get current jobs
+    let jobs_url = format!("https://{}:{}/{}/Jobs", send_creds.url, creds.port, creds.api_version);
+
+    let jobs: Vec<BackupJobs> = get_data(&client, &req_header, &jobs_url).await?;
+    let current_jobs_str: Vec<String> = jobs.iter().map(|x| x.name.clone()).collect();
+
     // get proxies
     let proxy_url = format!(
         "https://{}:{}/{}/Proxies?extendedView=true/",
@@ -138,6 +144,11 @@ pub async fn run_restores(file_name: &String, creds: &CredsExtended) -> Result<(
 
     for i in chosen {
         let mut job = &mut backuped_jobs[i];
+
+        if current_jobs_str.contains(&job.name) {
+            println!("{}", "Job Name in use, appending with - restored".on_yellow());
+            job.name.push_str("- restored");
+        }
 
         println!("{} Options", job.name);
 
