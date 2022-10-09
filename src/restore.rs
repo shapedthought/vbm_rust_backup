@@ -146,7 +146,7 @@ pub async fn run_restores(file_name: &String, creds: &CredsExtended) -> Result<(
         let mut job = &mut backuped_jobs[i];
 
         if current_jobs_str.contains(&job.name) {
-            println!("{}", "Job Name in use, appending with - restored".on_yellow());
+            println!("{}", "Job Name in use, appending with - restored".cyan());
             job.name.push_str("- restored");
         }
 
