@@ -1,12 +1,12 @@
 use crate::getcreds::{create_creds, get_creds};
 use crate::models::credsmodel::{Creds, CredsExtended, CredsResponse};
-use crate::models::jobsmodel::BackupJobSave;
+use crate::models::jobsmodel::{BackupJobSave, BackupJobs};
 use crate::models::othermodels::OrgData;
 use crate::models::repomodel::RepoModel;
 use anyhow::Result;
 use colored::*;
 use dialoguer::console::Term;
-// use dialoguer::MultiSelect;
+use dialoguer::MultiSelect;
 use dialoguer::{theme::ColorfulTheme, Confirm, Select};
 use magic_crypt::{new_magic_crypt, MagicCryptTrait};
 use reqwest::header::{HeaderMap, ACCEPT, CONTENT_TYPE};
@@ -75,6 +75,12 @@ pub async fn run_restores(file_name: &String, creds: &CredsExtended) -> Result<(
     let org_data: Vec<OrgData> = get_data(&client, &req_header, &org_url).await?;
     let org_names: Vec<String> = org_data.iter().map(|x| x.name.clone()).collect();
 
+    // get current jobs
+    let jobs_url = format!("https://{}:{}/{}/Jobs", send_creds.url, creds.port, creds.api_version);
+
+    let jobs: Vec<BackupJobs> = get_data(&client, &req_header, &jobs_url).await?;
+    let current_jobs_str: Vec<String> = jobs.iter().map(|x| x.name.clone()).collect();
+
     // get proxies
     let proxy_url = format!(
         "https://{}:{}/{}/Proxies?extendedView=true/",
@@ -130,56 +136,65 @@ pub async fn run_restores(file_name: &String, creds: &CredsExtended) -> Result<(
         job_strings.push(job_string);
     }
 
-    let selection = make_selection("Select the job to restore:", &job_strings)?;
+    let chosen : Vec<usize> = MultiSelect::new()
+        .items(&job_strings)
+        .report(true)
+        .with_prompt("Select Backups to Restore")
+        .interact()?;
 
-    match selection {
-        Some(index) => {
-            let mut job = &mut backuped_jobs[index];
+    for i in chosen {
+        let mut job = &mut backuped_jobs[i];
 
-            // select org
-            let selection = make_selection("Select Org to restore to", &org_names)?;
+        if current_jobs_str.contains(&job.name) {
+            println!("{}", "Job Name in use, appending with - restored".cyan());
+            job.name.push_str("- restored");
+        }
 
-            let mut org_id: String = String::new();
-            if let Some(i) = selection {
-                org_id = org_data[i].id.clone();
-            }
+        println!("{} Options", job.name);
 
-            // select proxy
-            let proxy_select = make_selection("Select Proxy", &proxy_names)?;
+        // select org
+        let selection = make_selection("Select Org to restore to", &org_names)?;
 
-            if let Some(i) = proxy_select {
-                let repo_names: Vec<String> =
-                    repos[i].repos.iter().map(|x| x.repo_name.clone()).collect();
+        let mut org_id: String = String::new();
+        if let Some(i) = selection {
+            org_id = org_data[i].id.clone();
+        }
 
-                let repo_select = make_selection("Select Repository", &repo_names)?;
+        // select proxy
+        let proxy_select = make_selection("Select Proxy", &proxy_names)?;
 
-                if let Some(j) = repo_select {
-                    job.repository_id = repos[i].repos[j].repo_id.clone();
+        if let Some(i) = proxy_select {
+            let repo_names: Vec<String> =
+                repos[i].repos.iter().map(|x| x.repo_name.clone()).collect();
 
-                    if Confirm::new().with_prompt("Restore?").interact()? {
-                        let job_url = format!(
-                            "https://{}:{}/{}/Organizations/{}/Jobs",
-                            send_creds.url, creds.port, creds.api_version, org_id
-                        );
-                        let res = client
-                            .post(job_url)
-                            .headers(req_header)
-                            .json(&job)
-                            .send()
-                            .await?;
+            let repo_select = make_selection("Select Repository", &repo_names)?;
 
-                        if res.status().is_success() {
-                            println!("{}", "success!".green())
-                        } else {
-                            println!("{}", "error!".red())
-                        }
+            if let Some(j) = repo_select {
+                job.repository_id = repos[i].repos[j].repo_id.clone();
+
+                if Confirm::new().with_prompt("Restore?").interact()? {
+                    let job_url = format!(
+                        "https://{}:{}/{}/Organizations/{}/Jobs",
+                        send_creds.url, creds.port, creds.api_version, org_id
+                    );
+                    let res = client
+                        .post(job_url)
+                        .headers(req_header.clone())
+                        .json(&job)
+                        .send()
+                        .await?;
+
+                    if res.status().is_success() {
+                        println!("{}", "success!".green())
                     } else {
-                        println!("Cancelled..");
+                        println!("{}", "error!".red())
                     }
+                } else {
+                    println!("Cancelled..");
                 }
             }
         }
-        None => println!("Nothing selected"),
+
     }
 
     Ok(())

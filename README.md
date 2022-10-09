@@ -4,8 +4,6 @@ This tool backs up and restores Veeam Backup for M365 jobs.
 
 NOTE: This has been tested on v6, but it should work on earlier versions.
 
-Currently only restores individual jobs.
-
 CLI commands:
 
     Usage: vbm_rust_backup [OPTIONS]
@@ -46,12 +44,13 @@ Using the -r / --restore flag the tool will take you through a wizard:
 1. Select the file you want to restore from
    - The tool will look for files in the directory with "job" in the name
 2. Enter the backup password
-3. Select the job you want to restore
-4. Select the Org to restore to
-5. Select the Proxy you want to use
-6. Select the Repo you want to use
-7. Confirm the restore
-8. It will ask if you want to restore another backup
+3. Select the jobs you want to restore
+
+For each job it will ask:
+1. Select the Org to restore to
+2. Select the Proxy you want to use
+3. Select the Repo you want to use
+4. Confirm the restore
 
 ## View Backup File Content
 
