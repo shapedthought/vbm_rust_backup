@@ -13,7 +13,7 @@ use magic_crypt::{new_magic_crypt, MagicCryptTrait};
 pub fn print_table() -> Result<()> {
     let creds = get_creds()?;
 
-    let paths = fs::read_dir(".").with_context(|| format!("Failed to read file"))?;
+    let paths = fs::read_dir(".").with_context(|| "Failed to read file".to_string())?;
 
     let mut json_files = Vec::new();
 
@@ -51,7 +51,7 @@ pub fn print_table() -> Result<()> {
 
     let decrypted_string = mc
         .decrypt_base64_to_string(file)
-        .with_context(|| format!("Wrong Password!"))?;
+        .with_context(|| "Wrong Password!".to_string())?;
 
     let backuped_jobs: Vec<BackupJobSave> = serde_json::from_str(&decrypted_string)?;
 

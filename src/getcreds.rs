@@ -27,7 +27,7 @@ pub fn get_creds() -> Result<CredsExtended> {
 
     let decrypt_string = mc
         .decrypt_base64_to_string(&creds.password)
-        .with_context(|| format!("Wrong password!"))?;
+        .with_context(|| "Wrong password!".to_string())?;
 
     let creds_extended = CredsExtended {
         backup_password: bu_password,

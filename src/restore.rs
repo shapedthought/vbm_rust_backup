@@ -31,7 +31,7 @@ struct RepoDetails {
     is_long_term: Option<bool>,
 }
 
-fn make_selection(text: &str, selections: &Vec<String>) -> Result<Option<usize>, std::io::Error> {
+fn make_selection(text: &str, selections: &[String]) -> Result<Option<usize>, std::io::Error> {
     Select::with_theme(&ColorfulTheme::default())
         .with_prompt(text)
         .items(selections)
@@ -40,6 +40,8 @@ fn make_selection(text: &str, selections: &Vec<String>) -> Result<Option<usize>,
 }
 
 pub async fn run_restores(file_name: &String, creds: &CredsExtended) -> Result<()> {
+
+    // need to do some work to clean this bit up
     let send_creds = Creds::new(
         creds.grant_type.clone(),
         creds.username.clone(),
@@ -201,7 +203,7 @@ pub async fn run_restores(file_name: &String, creds: &CredsExtended) -> Result<(
 }
 
 pub async fn do_restores() -> Result<()> {
-    if std::path::Path::new("creds.json").exists() == false {
+    if !std::path::Path::new("creds.json").exists() {
         if Confirm::new()
             .with_prompt("No creds.json file, create?")
             .interact()?

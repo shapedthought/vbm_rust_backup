@@ -3,8 +3,6 @@ use crate::models::credsmodel::{Creds, CredsResponse};
 use crate::models::jobsmodel::{BackupJobSave, BackupJobs};
 use crate::models::othermodels::OrgData;
 use anyhow::Result;
-use base64;
-use chrono;
 use dialoguer::Confirm;
 use magic_crypt::{new_magic_crypt, MagicCryptTrait};
 use reqwest::header::{HeaderMap, ACCEPT, CONTENT_TYPE};
@@ -15,7 +13,7 @@ use std::fs::File;
 use std::io::Write;
 
 pub async fn get_backups() -> Result<()> {
-    if std::path::Path::new("creds.json").exists() == false {
+    if !std::path::Path::new("creds.json").exists(){
         if Confirm::new()
             .with_prompt("No creds.json file, create?")
             .interact()?
@@ -88,12 +86,11 @@ pub async fn get_backups() -> Result<()> {
 
                 let version_number = creds.api_version.split_at(1).1.parse::<u8>()?;
 
-                let select_url: String;
-                if version_number > 5 {
-                    select_url = format!("https://{}:{}/{}", send_creds.url, creds.port, href);
+                let select_url: String = if version_number > 5 {
+                    format!("https://{}:{}/{}", send_creds.url, creds.port, href)
                 } else {
-                    select_url = href.to_string()
-                }
+                    href.to_string()
+                };
 
                 // let select_url = format!("https://{}:{}/{}", send_creds.url, creds.port, href);
                 let data = get_data(&client, &req_header, &select_url).await?;
@@ -116,10 +113,10 @@ pub async fn get_backups() -> Result<()> {
 
     let date_time = chrono::offset::Local::now()
         .to_string()
-        .replace(":", "-")
-        .replace(" ", "_");
+        .replace(':', "-")
+        .replace(' ', "_");
 
-    let data_str: Vec<&str> = date_time.split(".").collect();
+    let data_str: Vec<&str> = date_time.split('.').collect();
 
     let select_string = format!("jobs_backup_{}", data_str[0]);
 
