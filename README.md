@@ -1,6 +1,6 @@
 # VBM Job Backup
 
-This tool backs up and restores Veeam Backup for M365 jobs.
+This tool backs up and restores Veeam Backup for M365 jobs. It uses API calls to perform the job backup so it can be run from anywhere that has access to the API.
 
 NOTE: This has been tested on v6, but it should work on earlier versions.
 
@@ -72,3 +72,4 @@ Compiled program will be under target/release
 Run the tool via a terminal
 
     .\vbm_backup.exe
+
