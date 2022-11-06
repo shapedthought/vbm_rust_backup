@@ -40,7 +40,6 @@ fn make_selection(text: &str, selections: &[String]) -> Result<Option<usize>, st
 }
 
 pub async fn run_restores(file_name: &String, creds: &CredsExtended) -> Result<()> {
-
     // need to do some work to clean this bit up
     let send_creds = Creds::new(
         creds.grant_type.clone(),
@@ -78,7 +77,10 @@ pub async fn run_restores(file_name: &String, creds: &CredsExtended) -> Result<(
     let org_names: Vec<String> = org_data.iter().map(|x| x.name.clone()).collect();
 
     // get current jobs
-    let jobs_url = format!("https://{}:{}/{}/Jobs", send_creds.url, creds.port, creds.api_version);
+    let jobs_url = format!(
+        "https://{}:{}/{}/Jobs",
+        send_creds.url, creds.port, creds.api_version
+    );
 
     let jobs: Vec<BackupJobs> = get_data(&client, &req_header, &jobs_url).await?;
     let current_jobs_str: Vec<String> = jobs.iter().map(|x| x.name.clone()).collect();
@@ -138,7 +140,7 @@ pub async fn run_restores(file_name: &String, creds: &CredsExtended) -> Result<(
         job_strings.push(job_string);
     }
 
-    let chosen : Vec<usize> = MultiSelect::new()
+    let chosen: Vec<usize> = MultiSelect::new()
         .items(&job_strings)
         .report(true)
         .with_prompt("Select Backups to Restore")
@@ -196,7 +198,6 @@ pub async fn run_restores(file_name: &String, creds: &CredsExtended) -> Result<(
                 }
             }
         }
-
     }
 
     Ok(())
@@ -208,7 +209,7 @@ pub async fn do_restores() -> Result<()> {
             .with_prompt("No creds.json file, create?")
             .interact()?
         {
-            create_creds()?;
+            create_creds(None)?;
         } else {
             println!("Exiting...");
             std::process::exit(1);

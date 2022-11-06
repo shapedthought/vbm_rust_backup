@@ -11,7 +11,7 @@ tokio = { version = "^1", features = ["full"] }
 serde = { version = "^1.0", features = ["derive"] }
 serde_json = "^1.0"
 serde_urlencoded = "^0.7"
-spinners = "^3.1.0"
+spinners = "4.1.0"
 base64 = "^0.13.0"
 anyhow = "1.0.57"
 chrono = "0.4.22"
@@ -21,6 +21,11 @@ clap = { version = "4.0.8", features = ["derive"] }
 colored = "2"
 comfy-table = "6.1.0"
 magic-crypt = "3.1.10"
+
+[dev-dependencies]
+assert_cmd = "2.0.4"
+predicates = "2.1.1"
+rexpect = "0.5.0"
 
 [profile.release]
 strip = true

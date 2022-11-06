@@ -13,12 +13,12 @@ use std::fs::File;
 use std::io::Write;
 
 pub async fn get_backups() -> Result<()> {
-    if !std::path::Path::new("creds.json").exists(){
+    if !std::path::Path::new("creds.json").exists() {
         if Confirm::new()
             .with_prompt("No creds.json file, create?")
             .interact()?
         {
-            create_creds()?;
+            create_creds(None)?;
         } else {
             println!("Exiting...");
             std::process::exit(1);
@@ -34,7 +34,7 @@ pub async fn get_backups() -> Result<()> {
         url: creds.url,
     };
 
-    let sp = Spinner::new(Spinners::Dots9, "Running Backup...".into());
+    let mut sp = Spinner::new(Spinners::Dots9, "Running Backup...".into());
 
     let creds_urlenc = serde_urlencoded::to_string(&send_creds)?;
 

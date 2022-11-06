@@ -6,14 +6,18 @@ NOTE: This has been tested on v6, but it should work on earlier versions.
 
 CLI commands:
 
-    Usage: vbm_rust_backup [OPTIONS]
+    Usage: vbm_rust_backup [OPTIONS] [COMMAND]
+
+    Commands:
+    creds-ni  Create creds file non-interactively
+    help      Print this message or the help of the given subcommand(s)
 
     Options:
-        -r, --restore  Runs the restore action
-        -c, --creds    Create a creds.json file
-        -t, --table    Print the info in a backup file
-        -h, --help     Print help information
-        -V, --version  Print version information
+    -r, --restore  Runs the restore action
+    -c, --creds    Create a creds.json file interactively
+    -t, --table    Print the info in a backup file
+    -h, --help     Print help information
+    -V, --version  Print version information
 
 For all operations a creds.json file is required.
 
@@ -26,8 +30,19 @@ For all operations a creds.json file is required.
         "api_version": "v6"
     }
 
-The password is for VB365 but is encrypted with a backup password which you enter when you create the file using
-the --creds flag.
+The password is for VB365 but is encrypted with a backup password which you enter when you create the file interactively using the --creds flag.
+
+You can also create the creds.json file non-interactively
+
+    vbm_rust_backup creds-ni [OPTIONS] \ 
+    --username <USERNAME> \ 
+    --address <ADDRESS> \ 
+    --vb365-password <VB365_PASSWORD> \
+    --backup-password <BACKUP_PASSWORD> \
+    --port 4443 \
+    --api-version v6
+
+The port and api-version parameters are optional
 
 Having the VB365 password encrypted means that non-admin users to use the tool without providing them with the credentials of VB365.
 

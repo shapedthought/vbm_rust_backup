@@ -4,9 +4,9 @@ use std::{
 };
 
 use anyhow::{Context, Result};
+use base64;
 use dialoguer::{Input, Password};
 use magic_crypt::{new_magic_crypt, MagicCryptTrait};
-use base64;
 
 use crate::models::credsmodel::{CredsExtended, ReadCreds};
 
@@ -42,30 +42,49 @@ pub fn get_creds() -> Result<CredsExtended> {
     Ok(creds_extended)
 }
 
-pub fn create_creds() -> Result<()> {
-    let username: String = Input::new().with_prompt("Username").interact_text()?;
+pub fn create_creds(ni_creds: Option<CredsExtended>) -> Result<()> {
+    let username: String;
+    let url: String;
+    let port: u16;
+    let api_version: String;
+    let password: String;
+    let bu_password: String;
 
-    let url: String = Input::new().with_prompt("Address").interact_text()?;
+    match ni_creds {
+        Some(ni_creds) => {
+            username = ni_creds.username;
+            url = ni_creds.url;
+            port = ni_creds.port;
+            api_version = ni_creds.api_version;
+            password = ni_creds.password;
+            bu_password = ni_creds.backup_password
+        }
+        None => {
+            username = Input::new().with_prompt("Username").interact_text()?;
 
-    let port: u16 = Input::new()
-        .with_prompt("Select Port")
-        .default(4443)
-        .interact_text()?;
+            url = Input::new().with_prompt("Address").interact_text()?;
 
-    let api_version: String = Input::new()
-        .with_prompt("Select API version")
-        .default("v6".into())
-        .interact_text()?;
+            port = Input::new()
+                .with_prompt("Select Port")
+                .default(4443)
+                .interact_text()?;
 
-    let password = Password::new()
-        .with_prompt("Enter VB365 password")
-        .with_confirmation("Confirm password", "Passwords mismatching")
-        .interact()?;
+            api_version = Input::new()
+                .with_prompt("Select API version")
+                .default("v6".into())
+                .interact_text()?;
 
-    let bu_password = Password::new()
-        .with_prompt("Enter Backup password")
-        .with_confirmation("Confirm password", "Passwords mismatching")
-        .interact()?;
+            password = Password::new()
+                .with_prompt("Enter VB365 password")
+                .with_confirmation("Confirm password", "Passwords mismatching")
+                .interact()?;
+
+            bu_password = Password::new()
+                .with_prompt("Enter Backup password")
+                .with_confirmation("Confirm password", "Passwords mismatching")
+                .interact()?;
+        }
+    }
 
     let user_name_base64 = base64::encode(username.as_bytes());
 
