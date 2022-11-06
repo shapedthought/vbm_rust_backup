@@ -1,6 +1,6 @@
 use assert_cmd::Command;
-use serde::{Serialize, Deserialize};
-use std::fs;
+use serde::{Deserialize, Serialize};
+use std::{env, fs};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ReadCreds {
@@ -42,12 +42,43 @@ fn create_creds() {
         .success();
 }
 
+struct PathStrings {
+    first_string: String,
+    second_string: String
+}
+
+fn get_paths()-> PathStrings {
+    let binding = env::current_dir().unwrap();
+    let path = binding.to_str().unwrap();
+
+    let split_char: String;
+
+    if cfg!(windows) {
+        split_char = "\\".to_string()
+    } else {
+        split_char = "/".to_string()
+    }
+
+    let first_string = format!("{path}{split_char}creds.json");
+    let second_string = format!("{path}{split_char}tests{split_char}creds_test.json");
+
+    PathStrings {
+        first_string,
+        second_string
+    }
+}
+
 #[test]
 fn check_password() {
-    let first_file = fs::read_to_string("/Users/edwardhoward/Documents/RUST/vbm_backup/creds.json").unwrap();
+    let path_strings: PathStrings = get_paths();
+
+    let first_string = path_strings.first_string;
+    let second_string = path_strings.second_string;
+
+    let first_file = fs::read_to_string(first_string).unwrap();
     let first_creds: ReadCreds = serde_json::from_str(&first_file).unwrap();
 
-    let second_file = fs::read_to_string("/Users/edwardhoward/Documents/RUST/vbm_backup/tests/creds_test.json").unwrap();
+    let second_file = fs::read_to_string(second_string).unwrap();
     let second_creds: ReadCreds = serde_json::from_str(&second_file).unwrap();
 
     assert_eq!(first_creds.password, second_creds.password)

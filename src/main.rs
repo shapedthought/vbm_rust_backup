@@ -81,26 +81,26 @@ async fn main() -> Result<()> {
     } else if Option::is_none(&cli.command) {
         get_backups().await?;
     } else if let Some(Commands::CredsNI {
-            username,
-            address,
-            vb365_password,
+        username,
+        address,
+        vb365_password,
+        backup_password,
+        port,
+        api_version,
+    }) = cli.command
+    {
+        let grant_type = String::from("password");
+        let read_creds = CredsExtended {
             backup_password,
+            username,
+            grant_type,
+            password: vb365_password,
+            url: address,
             port,
             api_version,
-        }) = cli.command
-        {
-            let grant_type = String::from("password");
-            let read_creds = CredsExtended {
-                backup_password,
-                username,
-                grant_type,
-                password: vb365_password,
-                url: address,
-                port,
-                api_version,
-            };
-            create_creds(Some(read_creds))?;
-        }
+        };
+        create_creds(Some(read_creds))?;
+    }
 
     Ok(())
 }

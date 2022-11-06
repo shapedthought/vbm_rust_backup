@@ -24,8 +24,6 @@ magic-crypt = "3.1.10"
 
 [dev-dependencies]
 assert_cmd = "2.0.4"
-predicates = "2.1.1"
-rexpect = "0.5.0"
 
 [profile.release]
 strip = true
