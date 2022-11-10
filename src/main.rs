@@ -23,7 +23,7 @@ struct Cli {
     #[arg(short, long)]
     creds: bool,
 
-    /// Print the info in a backup file
+    /// Print the info about a backup file
     #[arg(short, long)]
     table: bool,
 
@@ -58,6 +58,10 @@ enum Commands {
         /// vb365 version
         #[arg(long, default_value_t = String::from("v6"))]
         api_version: String,
+
+        /// Enable Insecure SSL
+        #[arg(short, long)]
+        insecure: bool,
     },
 }
 
@@ -87,6 +91,7 @@ async fn main() -> Result<()> {
         backup_password,
         port,
         api_version,
+        insecure,
     }) = cli.command
     {
         let grant_type = String::from("password");
@@ -98,6 +103,7 @@ async fn main() -> Result<()> {
             url: address,
             port,
             api_version,
+            insecure,
         };
         create_creds(Some(read_creds))?;
     }

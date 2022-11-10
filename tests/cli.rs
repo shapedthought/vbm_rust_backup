@@ -10,6 +10,7 @@ pub struct ReadCreds {
     pub url: String,
     pub port: u16,
     pub api_version: String,
+    pub insecure: bool
 }
 
 #[test]
@@ -38,16 +39,17 @@ fn create_creds() {
         .arg("-a 192.168.0.123")
         .arg("-v password")
         .arg("-b password")
+        .arg("-i")
         .assert()
         .success();
 }
 
 struct PathStrings {
     first_string: String,
-    second_string: String
+    second_string: String,
 }
 
-fn get_paths()-> PathStrings {
+fn get_paths() -> PathStrings {
     let binding = env::current_dir().unwrap();
     let path = binding.to_str().unwrap();
 
@@ -64,7 +66,7 @@ fn get_paths()-> PathStrings {
 
     PathStrings {
         first_string,
-        second_string
+        second_string,
     }
 }
 

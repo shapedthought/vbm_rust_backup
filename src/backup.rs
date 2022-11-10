@@ -48,7 +48,7 @@ pub async fn get_backups() -> Result<()> {
     headers.insert(CONTENT_TYPE, "application/x-www-form-urlencoded".parse()?);
 
     let client = reqwest::Client::builder()
-        .danger_accept_invalid_certs(true)
+        .danger_accept_invalid_certs(creds.insecure)
         .build()?;
 
     let res_json: CredsResponse = post_data(&client, &headers, &url, creds_urlenc).await?;

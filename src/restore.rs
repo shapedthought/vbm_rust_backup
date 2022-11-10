@@ -50,14 +50,17 @@ pub async fn run_restores(file_name: &String, creds: &CredsExtended) -> Result<(
 
     let creds_urlenc = serde_urlencoded::to_string(&send_creds)?;
 
-    let url = format!("https://{}:4443/v6/Token", send_creds.url);
+    let url = format!(
+        "https://{}:{}/{}/Token",
+        send_creds.url, creds.port, creds.api_version
+    );
 
     let mut headers = HeaderMap::new();
     headers.insert(ACCEPT, "application/json".parse()?);
     headers.insert(CONTENT_TYPE, "application/x-www-form-urlencoded".parse()?);
 
     let client = reqwest::Client::builder()
-        .danger_accept_invalid_certs(true)
+        .danger_accept_invalid_certs(creds.insecure)
         .build()?;
 
     let res_json: CredsResponse = post_data(&client, &headers, &url, creds_urlenc).await?;

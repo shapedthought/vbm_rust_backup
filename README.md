@@ -15,7 +15,7 @@ CLI commands:
     Options:
     -r, --restore  Runs the restore action
     -c, --creds    Create a creds.json file interactively
-    -t, --table    Print the info in a backup file
+    -t, --table    Print the info about a backup file
     -h, --help     Print help information
     -V, --version  Print version information
 
@@ -27,7 +27,8 @@ For all operations a creds.json file is required.
         "password": "cGFzc3dvcmQK",
         "url": "192.168.0.123",
         "port" 4443,
-        "api_version": "v6"
+        "api_version": "v6",
+        "insecure": false
     }
 
 The password is for VB365 but is encrypted with a backup password which you enter when you create the file interactively using the --creds flag.
@@ -40,9 +41,10 @@ You can also create the creds.json file non-interactively
     --vb365-password <VB365_PASSWORD> \
     --backup-password <BACKUP_PASSWORD> \
     --port 4443 \
-    --api-version v6
+    --api-version v6 \
+    --insecure                           
 
-The port and api-version parameters are optional
+The port, api-version and insecure parameters are optional. Insecure refers to self-signed certificates being used.
 
 Having the VB365 password encrypted means that non-admin users to use the tool without providing them with the credentials of VB365.
 

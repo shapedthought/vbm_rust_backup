@@ -8,6 +8,7 @@ pub struct ReadCreds {
     pub url: String,
     pub port: u16,
     pub api_version: String,
+    pub insecure: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -37,6 +38,7 @@ pub struct CredsExtended {
     pub url: String,
     pub port: u16,
     pub api_version: String,
+    pub insecure: bool,
 }
 
 #[derive(Debug, Deserialize, Serialize)]

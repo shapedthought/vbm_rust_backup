@@ -5,7 +5,7 @@ use std::{
 
 use anyhow::{Context, Result};
 use base64;
-use dialoguer::{Input, Password};
+use dialoguer::{console::Term, theme::ColorfulTheme, Input, Password, Select};
 use magic_crypt::{new_magic_crypt, MagicCryptTrait};
 
 use crate::models::credsmodel::{CredsExtended, ReadCreds};
@@ -37,6 +37,7 @@ pub fn get_creds() -> Result<CredsExtended> {
         password: decrypt_string,
         port: creds.port,
         api_version: creds.api_version,
+        insecure: creds.insecure,
     };
 
     Ok(creds_extended)
@@ -49,6 +50,7 @@ pub fn create_creds(ni_creds: Option<CredsExtended>) -> Result<()> {
     let api_version: String;
     let password: String;
     let bu_password: String;
+    let insecure: bool;
 
     match ni_creds {
         Some(ni_creds) => {
@@ -57,7 +59,8 @@ pub fn create_creds(ni_creds: Option<CredsExtended>) -> Result<()> {
             port = ni_creds.port;
             api_version = ni_creds.api_version;
             password = ni_creds.password;
-            bu_password = ni_creds.backup_password
+            bu_password = ni_creds.backup_password;
+            insecure = ni_creds.insecure
         }
         None => {
             username = Input::new().with_prompt("Username").interact_text()?;
@@ -83,6 +86,21 @@ pub fn create_creds(ni_creds: Option<CredsExtended>) -> Result<()> {
                 .with_prompt("Enter Backup password")
                 .with_confirmation("Confirm password", "Passwords mismatching")
                 .interact()?;
+
+            let options = vec!["no", "yes"];
+            let select_insecure = Select::with_theme(&ColorfulTheme::default())
+                .with_prompt("Use insecure SSL?")
+                .items(&options)
+                .default(0)
+                .interact_on_opt(&Term::stderr())
+                .unwrap()
+                .unwrap();
+
+            if select_insecure == 0 {
+                insecure = false
+            } else {
+                insecure = true
+            }
         }
     }
 
@@ -100,6 +118,7 @@ pub fn create_creds(ni_creds: Option<CredsExtended>) -> Result<()> {
         url,
         port,
         api_version,
+        insecure,
     };
 
     let mut file1 = File::create("creds.json")?;
