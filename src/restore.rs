@@ -71,7 +71,7 @@ pub async fn run_restores(file_name: &String, creds: &CredsExtended) -> Result<(
     req_header.insert(CONTENT_TYPE, "application/json".parse()?);
     req_header.insert("Authorization", bearer.parse()?);
 
-    // get orgnainisations
+    // get organizations
     let org_url = format!(
         "https://{}:{}/{}/Organizations/",
         send_creds.url, creds.port, creds.api_version
@@ -87,6 +87,11 @@ pub async fn run_restores(file_name: &String, creds: &CredsExtended) -> Result<(
 
     let jobs: Vec<BackupJobs> = get_data(&client, &req_header, &jobs_url).await?;
     let current_jobs_str: Vec<String> = jobs.iter().map(|x| x.name.clone()).collect();
+    let job_types = jobs
+        .iter()
+        .filter(|x| x.backup_type.contains("EntireOrganization"));
+
+    let any_org = job_types.count();
 
     // get proxies
     let proxy_url = format!(
@@ -134,9 +139,20 @@ pub async fn run_restores(file_name: &String, creds: &CredsExtended) -> Result<(
 
     let mut backuped_jobs: Vec<BackupJobSave> = serde_json::from_str(&decrypt_string)?;
 
+    let filtered_jobs: Vec<&BackupJobSave> = backuped_jobs
+        .iter()
+        .filter(|x| {
+            if any_org > 0 {
+                x.backup_type != "EntireOrganization"
+            } else {
+                !x.backup_type.is_empty()
+            }
+        })
+        .collect();
+
     let mut job_strings = Vec::new();
 
-    for (i, v) in backuped_jobs.iter().enumerate() {
+    for (i, v) in filtered_jobs.iter().enumerate() {
         let name = v.name.to_owned();
 
         let job_string = format!("{}. {}", i, name);
@@ -194,7 +210,8 @@ pub async fn run_restores(file_name: &String, creds: &CredsExtended) -> Result<(
                     if res.status().is_success() {
                         println!("{}", "success!".green())
                     } else {
-                        println!("{}", "error!".red())
+                        println!("{}", "error!".red());
+                        println!("{:?}", res)
                     }
                 } else {
                     println!("Cancelled..");

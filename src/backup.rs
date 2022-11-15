@@ -77,12 +77,12 @@ pub async fn get_backups() -> Result<()> {
     }
 
     let mut select_jobs = Vec::new();
-    // let mut non_select_jobs = Vec::new();
     for i in jobs.iter() {
         for j in i.iter() {
             let mut select_items: Option<Vec<Value>> = None;
+
             if j.backup_type == "SelectedItems" {
-                let href = &j.links.selected_items.href;
+                let href = &j.links.selected_items.as_ref().unwrap().href;
 
                 let version_number = creds.api_version.split_at(1).1.parse::<u8>()?;
 
@@ -92,7 +92,6 @@ pub async fn get_backups() -> Result<()> {
                     href.to_string()
                 };
 
-                // let select_url = format!("https://{}:{}/{}", send_creds.url, creds.port, href);
                 let data = get_data(&client, &req_header, &select_url).await?;
                 select_items = Some(data);
             }
@@ -131,7 +130,6 @@ pub async fn get_backups() -> Result<()> {
 
     let base64 = mc.encrypt_str_to_base64(string1);
 
-    // file1.write_all(string1.as_bytes())?;
     file1.write_all(base64.as_bytes())?;
 
     sp.stop();

@@ -61,7 +61,8 @@ pub struct SchedulePolicy {
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Links {
-    pub selected_items: Href,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub selected_items: Option<Href>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -71,7 +72,7 @@ pub struct OrgBackups {
     pub backup_jobs: BackupJobSave,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Href {
     pub href: String,
 }

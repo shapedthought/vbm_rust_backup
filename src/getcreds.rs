@@ -13,7 +13,6 @@ use crate::models::credsmodel::{CredsExtended, ReadCreds};
 pub fn get_creds() -> Result<CredsExtended> {
     let file = fs::read_to_string("creds.json")?;
     let creds: ReadCreds = serde_json::from_str(&file)?;
-    // let pass_bytes = base64::decode(creds.password.as_bytes())?;
 
     let bu_password = Password::new()
         .with_prompt("Enter Backup password")
@@ -89,7 +88,7 @@ pub fn create_creds(ni_creds: Option<CredsExtended>) -> Result<()> {
 
             let options = vec!["no", "yes"];
             let select_insecure = Select::with_theme(&ColorfulTheme::default())
-                .with_prompt("Use insecure SSL?")
+                .with_prompt("Allow Invalid Certificates?")
                 .items(&options)
                 .default(0)
                 .interact_on_opt(&Term::stderr())

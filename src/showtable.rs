@@ -1,6 +1,5 @@
 use comfy_table::modifiers::UTF8_ROUND_CORNERS;
 use comfy_table::presets::UTF8_FULL;
-// use comfy_table::ContentArrangement;
 use anyhow::{Context, Result};
 use comfy_table::{modifiers::UTF8_SOLID_INNER_BORDERS, Table};
 use dialoguer::{console::Term, theme::ColorfulTheme, Select};
@@ -89,7 +88,6 @@ pub fn print_table() -> Result<()> {
             enabled_str,
             daily_type.to_string(),
             daily_time.to_string(),
-            // st_strings
         ]);
     }
 

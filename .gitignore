@@ -2,3 +2,5 @@
 creds.json
 .DS_Store
 *jobs*
+*.exe
+.vscode/settings.json

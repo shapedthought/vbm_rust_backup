@@ -3,6 +3,8 @@ use clap::{Parser, Subcommand};
 
 mod backup;
 use backup::get_backups;
+use colored::Colorize;
+use dialoguer::Confirm;
 mod restore;
 use crate::models::credsmodel::CredsExtended;
 use getcreds::create_creds;
@@ -59,7 +61,7 @@ enum Commands {
         #[arg(long, default_value_t = String::from("v6"))]
         api_version: String,
 
-        /// Enable Insecure SSL
+        /// Allow Invalid Certificates
         #[arg(short, long)]
         insecure: bool,
     },
@@ -67,22 +69,25 @@ enum Commands {
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    // println!("Selection which option you require");
     let cli = Cli::parse();
 
     if cli.table {
         print_table()?;
-        std::process::exit(1);
     }
 
     if cli.creds {
-        create_creds(None)?;
-        std::process::exit(1);
+        println!("{}","The VB365 Job Backup Tool is supplied without warranty or support.".green());
+        if Confirm::new().with_prompt("Confirm you understand?").interact()? {
+            println!("{}", "Confirmed".green());
+            create_creds(None)?;
+        } else {
+            eprint!("{}", "Exiting...".red())
+        }
     }
 
     if cli.restore {
         do_restores().await?;
-    } else if Option::is_none(&cli.command) {
+    } else if Option::is_none(&cli.command) && !cli.creds && !cli.table {
         get_backups().await?;
     } else if let Some(Commands::CredsNI {
         username,
