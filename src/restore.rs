@@ -137,10 +137,10 @@ pub async fn run_restores(file_name: &String, creds: &CredsExtended) -> Result<(
 
     let decrypt_string = mc.decrypt_base64_to_string(&file)?;
 
-    let mut backuped_jobs: Vec<BackupJobSave> = serde_json::from_str(&decrypt_string)?;
+    let backuped_jobs: Vec<BackupJobSave> = serde_json::from_str(&decrypt_string)?;
 
-    let filtered_jobs: Vec<&BackupJobSave> = backuped_jobs
-        .iter()
+    let mut filtered_jobs: Vec<BackupJobSave> = backuped_jobs
+        .into_iter()
         .filter(|x| {
             if any_org > 0 {
                 x.backup_type != "EntireOrganization"
@@ -166,7 +166,8 @@ pub async fn run_restores(file_name: &String, creds: &CredsExtended) -> Result<(
         .interact()?;
 
     for i in chosen {
-        let mut job = &mut backuped_jobs[i];
+        let job = &mut filtered_jobs[i];
+        println!("{}", job.name);
 
         if current_jobs_str.contains(&job.name) {
             println!("{}", "Job Name in use, appending with - restored".cyan());
