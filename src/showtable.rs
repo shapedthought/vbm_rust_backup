@@ -77,8 +77,18 @@ pub fn print_table() -> Result<()> {
             "false".to_string()
         };
 
-        let daily_type = &i.schedule_policy.daily_type;
-        let daily_time = &i.schedule_policy.daily_time;
+        let daily_type = match &i.schedule_policy.daily_type {
+            Some(p) => p.to_string(),
+            None => "-".to_string()
+        };
+
+        let daily_time = match &i.schedule_policy.daily_time {
+            Some(p) => p.to_string(),
+            None => "-".to_string()
+        };
+
+        // let daily_type = &i.schedule_policy.daily_type;
+        // let daily_time = &i.schedule_policy.daily_time;
 
         table.add_row(vec![
             i.name.to_string(),

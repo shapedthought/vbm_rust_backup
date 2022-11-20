@@ -48,14 +48,14 @@ pub struct BackupJobSave {
 #[serde(rename_all = "camelCase")]
 pub struct SchedulePolicy {
     pub backup_window_enabled: bool,
-    pub daily_time: String,
-    pub daily_type: String,
+    pub daily_time: Option<String>,
+    pub daily_type: Option<String>,
     pub retry_enabled: bool,
     pub retry_number: u8,
     pub retry_wait_interval: u8,
     pub schedule_enabled: bool,
     #[serde(rename(serialize = "type", deserialize = "type"))]
-    pub backup_type: String,
+    pub backup_type: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
