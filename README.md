@@ -16,6 +16,7 @@ CLI commands:
     -r, --restore  Runs the restore action
     -c, --creds    Create a creds.json file interactively
     -t, --table    Print the info about a backup file
+    -e, --env_pass  Use VB365_PASS env variable for password on backup and restore
     -h, --help     Print help information
     -V, --version  Print version information
 
@@ -35,14 +36,14 @@ The password is for VB365 but is encrypted with a backup password which you ente
 
 You can also create the creds.json file non-interactively
 
-    vbm_rust_backup creds-ni [OPTIONS] \ 
-    --username <USERNAME> \ 
-    --address <ADDRESS> \ 
+    vbm_rust_backup creds-ni [OPTIONS] \
+    --username <USERNAME> \
+    --address <ADDRESS> \
     --vb365-password <VB365_PASSWORD> \
     --backup-password <BACKUP_PASSWORD> \
     --port 4443 \
     --api-version v6 \
-    --insecure                           
+    --insecure
 
 The port, api-version and insecure parameters are optional. Insecure refers to self-signed certificates being used.
 
@@ -51,6 +52,8 @@ Having the VB365 password encrypted means that non-admin users to use the tool w
 ## Backup
 
 To run a backup just run without any flags, it will prompt for the backup password, if correct it will run the job backup.
+
+If the VB365_PASS environment variable has been set you can use the -e / --env_pass flag to use that instead of it being interactive.
 
 The backup file is also encrypted with AES256 using a password which is a combination of both the backup and VB365 passwords.
 
@@ -64,6 +67,7 @@ Using the -r / --restore flag the tool will take you through a wizard:
 3. Select the jobs you want to restore
 
 For each job it will ask:
+
 1. Select the Org to restore to
 2. Select the Proxy you want to use
 3. Select the Repo you want to use
@@ -89,4 +93,3 @@ Compiled program will be under target/release
 Run the tool via a terminal
 
     .\vbm_backup.exe
-

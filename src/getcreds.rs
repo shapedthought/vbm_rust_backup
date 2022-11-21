@@ -3,20 +3,32 @@ use std::{
     io::Write,
 };
 
-use anyhow::{Context, Result};
+use anyhow::{Context, Result, bail};
 use base64;
 use dialoguer::{console::Term, theme::ColorfulTheme, Input, Password, Select};
 use magic_crypt::{new_magic_crypt, MagicCryptTrait};
+use std::env;
 
 use crate::models::credsmodel::{CredsExtended, ReadCreds};
 
-pub fn get_creds() -> Result<CredsExtended> {
+pub fn get_creds(pass_env: bool) -> Result<CredsExtended> {
     let file = fs::read_to_string("creds.json")?;
     let creds: ReadCreds = serde_json::from_str(&file)?;
 
-    let bu_password = Password::new()
+    let bu_password: String;
+
+    if pass_env {
+        match env::var("VB365_PASS") {
+            Ok(pass) => bu_password = pass.to_string(),
+            Err(_) => bail!("VB365_PASS not set in env")
+        }
+        // let bu_password_opt: Option<&'static str> = option_env!("VB365_PASS");
+        // bu_password = bu_password_opt
+    } else {
+        bu_password = Password::new()
         .with_prompt("Enter Backup password")
         .interact()?;
+    }
 
     let user_name_base64 = base64::encode(&creds.username);
 
