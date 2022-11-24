@@ -9,8 +9,8 @@ use crate::getcreds::get_creds;
 use crate::models::jobsmodel::BackupJobSave;
 use magic_crypt::{new_magic_crypt, MagicCryptTrait};
 
-pub fn print_table() -> Result<()> {
-    let creds = get_creds()?;
+pub fn print_table(pass_env: bool) -> Result<()> {
+    let creds = get_creds(pass_env)?;
 
     let paths = fs::read_dir(".").with_context(|| "Failed to read file".to_string())?;
 

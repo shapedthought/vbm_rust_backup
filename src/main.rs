@@ -29,6 +29,10 @@ struct Cli {
     #[arg(short, long)]
     table: bool,
 
+    /// Use VB365_PASS env variable for password on backup and restore
+    #[arg(short, long)]
+    env_pass: bool,
+
     #[command(subcommand)]
     command: Option<Commands>,
 }
@@ -72,7 +76,7 @@ async fn main() -> Result<()> {
     let cli = Cli::parse();
 
     if cli.table {
-        print_table()?;
+        print_table(cli.env_pass)?;
     }
 
     if cli.creds {
@@ -86,9 +90,9 @@ async fn main() -> Result<()> {
     }
 
     if cli.restore {
-        do_restores().await?;
+        do_restores(cli.env_pass).await?;
     } else if Option::is_none(&cli.command) && !cli.creds && !cli.table {
-        get_backups().await?;
+        get_backups(cli.env_pass).await?;
     } else if let Some(Commands::CredsNI {
         username,
         address,

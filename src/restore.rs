@@ -224,7 +224,7 @@ pub async fn run_restores(file_name: &String, creds: &CredsExtended) -> Result<(
     Ok(())
 }
 
-pub async fn do_restores() -> Result<()> {
+pub async fn do_restores(pass_env: bool) -> Result<()> {
     if !std::path::Path::new("creds.json").exists() {
         if Confirm::new()
             .with_prompt("No creds.json file, create?")
@@ -248,7 +248,7 @@ pub async fn do_restores() -> Result<()> {
         }
     }
 
-    let creds = get_creds()?;
+    let creds = get_creds(pass_env)?;
 
     match json_files.len() {
         1 => {

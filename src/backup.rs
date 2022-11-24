@@ -12,7 +12,7 @@ use spinners::{Spinner, Spinners};
 use std::fs::File;
 use std::io::Write;
 
-pub async fn get_backups() -> Result<()> {
+pub async fn get_backups(pass_env: bool) -> Result<()> {
     if !std::path::Path::new("creds.json").exists() {
         if Confirm::new()
             .with_prompt("No creds.json file, create?")
@@ -25,7 +25,7 @@ pub async fn get_backups() -> Result<()> {
         }
     }
 
-    let creds = get_creds()?;
+    let creds = get_creds(pass_env)?;
 
     let send_creds = Creds {
         grant_type: creds.grant_type,
