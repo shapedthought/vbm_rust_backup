@@ -80,11 +80,13 @@ pub async fn get_backups(pass_env: bool) -> Result<()> {
     for i in jobs.iter() {
         for j in i.iter() {
             let mut select_items: Option<Vec<Value>> = None;
+            let mut excluded_items: Option<Vec<Value>> = None;
+            let mut version_number = 6;
 
             if j.backup_type == "SelectedItems" {
                 let href = &j.links.selected_items.as_ref().unwrap().href;
 
-                let version_number = creds.api_version.split_at(1).1.parse::<u8>()?;
+                version_number = creds.api_version.split_at(1).1.parse::<u8>()?;
 
                 let select_url: String = if version_number > 5 {
                     format!("https://{}:{}/{}", send_creds.url, creds.port, href)
@@ -94,6 +96,17 @@ pub async fn get_backups(pass_env: bool) -> Result<()> {
 
                 let data = get_data(&client, &req_header, &select_url).await?;
                 select_items = Some(data);
+            };
+            if let Some(exc_url) = &j.links.excluded_items {
+
+                let excluded_url: String = if version_number > 5 {
+                    format!("https://{}:{}/{}", send_creds.url, creds.port, exc_url.href)
+                } else {
+                    exc_url.href.to_string()
+                };
+
+                let ex_data: Vec<Value> = get_data(&client, &req_header, &excluded_url).await?;
+                excluded_items = Some(ex_data)
             }
             let new_job = BackupJobSave {
                 backup_type: j.backup_type.to_string(),
@@ -105,6 +118,7 @@ pub async fn get_backups(pass_env: bool) -> Result<()> {
                 repository_id: j.repository_id.to_string(),
                 schedule_policy: j.schedule_policy.clone(),
                 run_now: false,
+                excluded_items: excluded_items
             };
             select_jobs.push(new_job)
         }
