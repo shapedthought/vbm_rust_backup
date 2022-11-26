@@ -42,6 +42,7 @@ pub struct BackupJobSave {
     pub repository_id: String,
     pub schedule_policy: SchedulePolicy,
     pub run_now: bool,
+    pub excluded_items: Option<Vec<Value>>
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -63,6 +64,8 @@ pub struct SchedulePolicy {
 pub struct Links {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub selected_items: Option<Href>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub excluded_items: Option<Href>
 }
 
 #[derive(Debug, Deserialize, Serialize)]
