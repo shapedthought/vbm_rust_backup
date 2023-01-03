@@ -1,6 +1,6 @@
+use anyhow::{Context, Result};
 use comfy_table::modifiers::UTF8_ROUND_CORNERS;
 use comfy_table::presets::UTF8_FULL;
-use anyhow::{Context, Result};
 use comfy_table::{modifiers::UTF8_SOLID_INNER_BORDERS, Table};
 use dialoguer::{console::Term, theme::ColorfulTheme, Select};
 use std::fs;
@@ -79,12 +79,12 @@ pub fn print_table(pass_env: bool) -> Result<()> {
 
         let daily_type = match &i.schedule_policy.daily_type {
             Some(p) => p.to_string(),
-            None => "-".to_string()
+            None => "-".to_string(),
         };
 
         let daily_time = match &i.schedule_policy.daily_time {
             Some(p) => p.to_string(),
-            None => "-".to_string()
+            None => "-".to_string(),
         };
 
         // let daily_type = &i.schedule_policy.daily_type;

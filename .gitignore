@@ -4,3 +4,5 @@ creds.json
 *jobs*
 *.exe
 .vscode/settings.json
+*.zip
+*.docx

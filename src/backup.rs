@@ -11,6 +11,7 @@ use serde_json::Value;
 use spinners::{Spinner, Spinners};
 use std::fs::File;
 use std::io::Write;
+use std::time::Duration;
 
 pub async fn get_backups(pass_env: bool) -> Result<()> {
     if !std::path::Path::new("creds.json").exists() {
@@ -48,6 +49,7 @@ pub async fn get_backups(pass_env: bool) -> Result<()> {
     headers.insert(CONTENT_TYPE, "application/x-www-form-urlencoded".parse()?);
 
     let client = reqwest::Client::builder()
+        .timeout(Duration::from_secs(5))
         .danger_accept_invalid_certs(creds.insecure)
         .build()?;
 
@@ -98,7 +100,6 @@ pub async fn get_backups(pass_env: bool) -> Result<()> {
                 select_items = Some(data);
             };
             if let Some(exc_url) = &j.links.excluded_items {
-
                 let excluded_url: String = if version_number > 5 {
                     format!("https://{}:{}/{}", send_creds.url, creds.port, exc_url.href)
                 } else {
@@ -118,7 +119,7 @@ pub async fn get_backups(pass_env: bool) -> Result<()> {
                 repository_id: j.repository_id.to_string(),
                 schedule_policy: j.schedule_policy.clone(),
                 run_now: false,
-                excluded_items: excluded_items
+                excluded_items,
             };
             select_jobs.push(new_job)
         }

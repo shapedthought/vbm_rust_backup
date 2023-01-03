@@ -30,6 +30,7 @@ impl Creds {
     }
 }
 
+#[derive(Debug, Deserialize, Serialize)]
 pub struct CredsExtended {
     pub backup_password: String,
     pub grant_type: String,

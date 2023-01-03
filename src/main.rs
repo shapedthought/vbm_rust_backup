@@ -80,8 +80,14 @@ async fn main() -> Result<()> {
     }
 
     if cli.creds {
-        println!("{}","The VB365 Job Backup Tool is supplied without warranty or support.".green());
-        if Confirm::new().with_prompt("Confirm you understand?").interact()? {
+        println!(
+            "{}",
+            "The VB365 Job Backup Tool is supplied without warranty or support.".green()
+        );
+        if Confirm::new()
+            .with_prompt("Confirm you understand?")
+            .interact()?
+        {
             println!("{}", "Confirmed".green());
             create_creds(None)?;
         } else {

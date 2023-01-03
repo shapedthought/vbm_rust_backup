@@ -1,0 +1,10 @@
+assets/
+target/
+tests/
+vscode/
+LICENSE
+README.md
+*.docx
+*.exe
+*.zip
+*.json
