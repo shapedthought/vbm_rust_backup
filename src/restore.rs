@@ -226,7 +226,7 @@ pub async fn run_restores(file_name: &String, creds: Rc<&CredsExtended>) -> Resu
 }
 
 pub async fn do_restores(pass_env: bool) -> Result<()> {
-    if !std::path::Path::new("creds.json").exists() {
+    if !std::path::Path::new("creds.json").exists() && !pass_env {
         if Confirm::new()
             .with_prompt("No creds.json file, create?")
             .interact()?

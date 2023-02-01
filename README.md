@@ -26,6 +26,8 @@ _The tool has been tested on v6 but not older versions. Changes to the API betwe
 | ------- | ------------------------------------------------------ |
 | 0.1.0   | First beta version                                     |
 | 0.2.0   | Added excluded items support, reduced memory footprint |
+| 0.3.0   | Added custom creds.json file location via env          |
+| 0.3.1   | Fixed issue with env-pass not being checked            |
 
 ### API Calls used
 

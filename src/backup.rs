@@ -14,7 +14,7 @@ use std::io::Write;
 use std::time::Duration;
 
 pub async fn get_backups(pass_env: bool) -> Result<()> {
-    if !std::path::Path::new("creds.json").exists() {
+    if !std::path::Path::new("creds.json").exists() && !pass_env {
         if Confirm::new()
             .with_prompt("No creds.json file, create?")
             .interact()?
