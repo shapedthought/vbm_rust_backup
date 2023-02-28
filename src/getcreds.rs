@@ -95,7 +95,7 @@ pub fn create_creds(ni_creds: Option<CredsExtended>) -> Result<()> {
 
             api_version = Input::new()
                 .with_prompt("Select API version")
-                .default("v6".into())
+                .default("v7".into())
                 .interact_text()?;
 
             password = Password::new()

@@ -1,1 +1,9 @@
-{"grant_type":"password","username":"admin","password":"DfNWzmJej1GzrO1UbVzJZg==","url":"192.168.0.123","port":4443,"api_version":"v6", "insecure":true}
+{
+  "grant_type": "password",
+  "username": "admin",
+  "password": "DfNWzmJej1GzrO1UbVzJZg==",
+  "url": "192.168.0.123",
+  "port": 4443,
+  "api_version": "v7",
+  "insecure": true
+}

@@ -18,16 +18,17 @@ For the best experience, it is recommended to use [PowerShell 7](https://learn.m
 
 _Note that the tool does not currently support backup copy jobs_
 
-_The tool has been tested on v6 but not older versions. Changes to the API between v5 and v6 have been accounted for, so it should work without issue._
+_The tool has been tested on v5, v6 & v7 but not older versions. Changes to the API between v5 and v6 have been accounted for, so it should work without issue._
 
 ### Change Log
 
-| Version | Notes                                                  |
-| ------- | ------------------------------------------------------ |
-| 0.1.0   | First beta version                                     |
-| 0.2.0   | Added excluded items support, reduced memory footprint |
-| 0.3.0   | Added custom creds.json file location via env          |
-| 0.3.1   | Fixed issue with env-pass not being checked            |
+| Version | Notes                                                                                         |
+| ------- | --------------------------------------------------------------------------------------------- |
+| 0.1.0   | First beta version                                                                            |
+| 0.2.0   | Added excluded items support, reduced memory footprint                                        |
+| 0.3.0   | Added custom creds.json file location via env                                                 |
+| 0.3.1   | Fixed issue with env-pass not being checked                                                   |
+| 0.3.2   | Updated to use the v7 API by default. Fixed issue with optional values in the schedule object |
 
 ### API Calls used
 
@@ -129,7 +130,7 @@ The creds.json file contains the following parameters:
 | password            | String  | Encrypted VB365 password                                      |
 | url                 | String  | V365 server address                                           |
 | port                | Integer | Port used to access the API, default is 4443                  |
-| api_version         | String  | The version of the API, default is v6                         |
+| api_version         | String  | The version of the API, default is v7                         |
 | insecure            | Boolean | Allows the use of insecure certificates. The default is false |
 
 Normally the the tool needs to be run in the same location as the creds.json file unless you have set a specific location in the environmental variables (VB365_CONFIG):
@@ -166,8 +167,9 @@ The reason for doing this is that it allows a non-admin user to use the tool wit
 | -a / --address         | VB365 address                                                                                                                        |
 | -v / --vb365-password  | The VB365 password                                                                                                                   |
 | -b / --backup-password | The backup password                                                                                                                  |
-| -api-version           | Optional, default is 4443                                                                                                            |
-| -i / --insecure        | Optional, allows for invalid certificates e.g. self-signed                                                                           |
+| -p / --port            | Optional, default is 4443                                                                                                            |
+| -api-version           | Optional, default is v7                                                                                                              |
+| -i / --insecure        | Optional, default is false (secure), enabling allows for invalid certificates e.g. self-signed                                       |
 
 **WARNING using the creds-ni method exposes the VB365 in plain text**
 
@@ -182,7 +184,7 @@ For more information on the creds file, see the creds file section above.
 3. Enter username
 4. Enter address
 5. Select port, 4443 is default
-6. Select API version, v6 is default
+6. Select API version, v7 is default
 7. Enter and confirm the VB365 password
 8. Enter and confirm the backup password
 9. Select to allow the use of invalid certificates

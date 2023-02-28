@@ -62,7 +62,7 @@ enum Commands {
         port: u16,
 
         /// vb365 version
-        #[arg(long, default_value_t = String::from("v6"))]
+        #[arg(long, default_value_t = String::from("v7"))]
         api_version: String,
 
         /// Allow Invalid Certificates
