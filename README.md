@@ -22,13 +22,15 @@ _The tool has been tested on v5, v6 & v7 but not older versions. Changes to the 
 
 ### Change Log
 
-| Version | Notes                                                                                         |
-| ------- | --------------------------------------------------------------------------------------------- |
-| 0.1.0   | First beta version                                                                            |
-| 0.2.0   | Added excluded items support, reduced memory footprint                                        |
-| 0.3.0   | Added custom creds.json file location via env                                                 |
-| 0.3.1   | Fixed issue with env-pass not being checked                                                   |
-| 0.3.2   | Updated to use the v7 API by default. Fixed issue with optional values in the schedule object |
+| Version | Notes                                                                                                                        |
+| ------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| 0.1.0   | First beta version                                                                                                           |
+| 0.2.0   | Added excluded items support, reduced memory footprint                                                                       |
+| 0.3.0   | Added custom creds.json file location via env                                                                                |
+| 0.3.1   | Fixed issue with env-pass not being checked                                                                                  |
+| 0.3.2   | Updated to use the v7 API by default. Fixed issue with optional values in the schedule object                                |
+| 0.3.3   | Same as 0.3.3 added new tag for the github action build                                                                      |
+| 0.3.4   | Fixed issue with the getting proxy data on restores due to a different structure being used on the individual proxy response |
 
 ### API Calls used
 

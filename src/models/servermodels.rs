@@ -12,8 +12,6 @@ pub struct ProxyModel {
     pub host_name: String,
     pub description: String,
     pub port: i64,
-    pub threads_number: i64,
-    pub enable_network_throttling: bool,
     pub status: String,
     #[serde(rename = "_links")]
     pub links: Links,
