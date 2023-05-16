@@ -4,9 +4,11 @@
 
 **The VB365 Job configuration backup tool (VJC), aka vbm_rust_backup, is not an official Veeam tool and is, therefore, unsupported. It is provided under the MIT license with no warranty or support implied or provided.**
 
-We take security very seriously, with this in mind please **DO NOT ACCEPT AN EXECUTABLE FROM ANYONE DIRECTLY, ALWAYS BUILD FROM SOURCE.**
+We take security very seriously, with this in mind please **DO NOT ACCEPT AN EXECUTABLE FROM ANYONE DIRECTLY, ALWAYS BUILD FROM SOURCE IF POSSIBLE.**
 
-We may add an automated publish to this repository at some point, but even then only download from this repository. DO NOT ACCEPT EXECUTABLES SENT DIRECTLY.
+You can now download the binary file from this repository under the releases, but please be aware that this is not recommended. If you do download the binary, please check the hash against the one in the release notes.
+
+DO NOT ACCEPT EXECUTABLES SENT DIRECTLY.
 
 ### Introduction
 
@@ -55,7 +57,11 @@ Restore
 | GET Repositories | Used to get the repositories          |
 | POST Jobs        | Used to restore a job                 |
 
-### Installation
+## Installation
+
+**NOTE: It is highly recommended that the tool is not installed/ used on the VB365 server.**
+
+### Build from source (recommended)
 
 The VJC can be run on PC, Mac or Linux.
 
@@ -82,9 +88,13 @@ To uninstall run:
 cargo uninstall vbm_rust_backup
 ```
 
-**It is highly recommended that the tool is not installed/ used on the VB365 server.**
+### Download the binary
 
-### Docker/Podman installation
+You can download the binary from the releases section of this repository. The binary is a single file that can be run from anywhere.
+
+Install the binary in a location that is in your system path. You will then be able to run the tool from anywhere via a command prompt.
+
+## Docker/Podman installation
 
 To be install in a completely isolated environment you do the following.
 
@@ -119,7 +129,7 @@ For Podman all you need to do is replace "docker" with "podman" for the most par
 
 NOTE: using a bind mount is a potential security concern.
 
-### Creds file
+## Creds file
 
 The creds file contains data used to perform the backup and restore.
 
@@ -143,7 +153,7 @@ PowerShell
   $env:VB365_CONFIG = "C:\.vb_bu\creds.json"
 ```
 
-### Backup Password
+## Backup Password
 
 The saved password is referred to as the **“backup password”**, which is used to encrypt the configuration data.
 
@@ -153,7 +163,7 @@ The reason for doing this is that it allows a non-admin user to use the tool wit
 
 **When restoring a job configuration to a new VB365 instance, it must use the same VB365 username and password as the server from which the job configuration backup was created.**
 
-### CLI Commands
+## CLI Commands
 
 ![overview](./assets/Picture1.png)
 
@@ -175,9 +185,9 @@ The reason for doing this is that it allows a non-admin user to use the tool wit
 
 **WARNING using the creds-ni method exposes the VB365 in plain text**
 
-### Usage
+## Usage
 
-#### Creating the creds file - interactive
+### Creating the creds file - interactive
 
 For more information on the creds file, see the creds file section above.
 
@@ -193,7 +203,7 @@ For more information on the creds file, see the creds file section above.
 
 ![creds](./assets/Picture2.png)
 
-#### Create the creds file - non-interactive
+### Create the creds file - non-interactive
 
 Run the tool with the creds-ni command and include the following flags
 
@@ -234,7 +244,7 @@ Displays a table with some of the information from the backup file. This aids yo
 
 ![table](./assets/Picture4.png)
 
-### Run Restore
+## Running Restores
 
 **When restoring a job configuration to a new VB365 instance, it must use the same VB365 username and password as the server from which the job configuration backup was created.**
 
@@ -267,7 +277,7 @@ It will the prompt you to restore, once complete it will ask if you wish to run 
 Full restore:
 ![full-restore](./assets/Picture9.png)
 
-### Notes on restores
+## Notes on restores
 
 The tool looks at the current VB365 environment being restored; it does not use the original organization, proxies, or repositories when restoring.
 
@@ -277,7 +287,7 @@ As VB365 does not allow for more than one “Entire Organization” backup, if t
 
 See: https://helpcenter.veeam.com/docs/vbo365/guide/select_objects_to_backup.html?ver=60
 
-### Effect on the VB365 Environment
+## Effect on the VB365 Environment
 
 When a job is restored, it effectively creates a new backup job; it isn’t specifically a restore of the original job. Because of this, when you look at the restore points of the new job, it will only show the ones associated with it.
 
@@ -287,7 +297,7 @@ See: [Exploring Single Organization](https://helpcenter.veeam.com/docs/vbo365/gu
 
 ![full-restore](./assets/Picture10.png)
 
-### Setting Environmental Variables
+## Setting Environmental Variables
 
 This assumes you are using PowerShell.
 
@@ -301,7 +311,7 @@ System Level:
 
     [Environment]::SetEnvironmentVariable("VB365_PASS", “backup_password” ,"Machine")
 
-### Troubleshoot
+## Troubleshooting
 
 If you have any issues we recommend that you check the logs on the On the VB365 server:
 C:\ProgramData\Veeam\Backup365\Logs\Veeam.Archiver.REST_DATE_TIME.log
@@ -312,6 +322,6 @@ Example incorrect username:
     …
     [21.11.2022 15:11:47]  176 (4048) Error: The logon attempt failed
 
-### Contribution/ Issues
+## Contribution/ Issues
 
 If you find a problem or would like to suggest an improvement please either raise an issue, or send a pull request.
